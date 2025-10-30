@@ -524,6 +524,12 @@ public class GameManager {
 
         List<Jogador> jogadores = tabuleiro.getListaJogadores();
 
+        Jogador vencedor = tabuleiro.getWinner();
+
+        if(vencedor == null){
+            return null;
+        }
+
         String nomeVencedor = tabuleiro.getWinner().getNome();
 
         jogadores.sort((a,b) -> {
@@ -532,9 +538,6 @@ public class GameManager {
             int jogadorB = tabuleiro.getPosOf(b);
             return Integer.compare(jogadorB,jogadorA);
         });
-
-        System.out.println("Isto é a ordenação");
-        System.out.println(jogadores.toString());
 
         ArrayList<String> resultado = new ArrayList<>();
 
@@ -549,7 +552,7 @@ public class GameManager {
         resultado.add("RESTANTES");
 
         for(int i = 1; i < jogadores.size(); i++){
-            resultado.add(jogadores.get(i).getNome());
+            resultado.add(jogadores.get(i).getNome() + " " + String.valueOf(tabuleiro.getPosOf(jogadores.get(i))));
         }
 
         System.out.println(resultado);
