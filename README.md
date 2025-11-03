@@ -1,0 +1,9 @@
+# Universidade Lusófona
+## Licenciatura em Engenharia Informática
+### Linguagens de Programação II
+**Projeto:** The Great Programming Journey  
+**Autor:** Duarte Veríssimo — nº 22303434 
+**Ano letivo:** 2025/2026
+
+*Diagrama UML:*  
+![Diagrama UML](src/images/uml.jpg)
