@@ -6,4 +6,4 @@
 **Ano letivo:** 2025/2026
 
 *Diagrama UML:*  
-![Diagrama UML](src/images/uml.jpg)
+![Diagrama UML](src/pt/ulusofona/lp2/greatprogrammingjourney/uml.png)
