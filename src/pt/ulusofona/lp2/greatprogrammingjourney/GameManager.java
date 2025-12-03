@@ -1,8 +1,9 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,37 +31,6 @@ enum Estado {
     DERROTADO
 }
 
-/* enum LinguagensProgramacao{
-    JAVA,
-    PYTHON,
-    ADA,
-    C,
-    LISP;
-
-    public static LinguagensProgramacao[] fromString(String lp){
-        if(lp == null || lp.isEmpty()){
-            return null;
-        }
-
-        String[] partes = lp.split(";");
-
-        LinguagensProgramacao[] linguagensP = new LinguagensProgramacao[partes.length];
-
-        int i = 0;
-
-        for(String parte : partes) {
-            for (LinguagensProgramacao lps : values()) {
-                if (lps.name().equalsIgnoreCase(parte.trim())) {
-                    linguagensP[i] = lps;
-                    i++;
-                    break;
-                }
-            }
-        }
-        return linguagensP;
-    }
-
-}*/
 
 public class GameManager {
 
@@ -180,15 +150,6 @@ public class GameManager {
             tabuleiro.botarJogador(jogador, 1);
         }
 
-/*
-        // Adicionar todos os jogadores ao primeiro slot (posição inicial)
-        Slot primeiroSlot = tabuleiro.getSlot(0);
-        if (primeiroSlot != null) {
-            for (Jogador jogador : this.jogadores) {
-                primeiroSlot.addPlayer(jogador);
-            }
-        }
-*/
         int menorId = Integer.MAX_VALUE;
         for(Jogador jogador : tabuleiro.getListaJogadores()){
                 if(jogador.getId() < menorId){
@@ -205,6 +166,7 @@ public class GameManager {
         }
         return true;
     }
+
 
     public String getImagePng(int nrSquare) {
 
@@ -578,6 +540,7 @@ public class GameManager {
 
     }
 
+
     public JPanel getAuthorsPanel(){
             return new JPanel();
         //A função getAuthorsPanel() devolve um painel gráfico personalizado para a janela de "Créditos".
@@ -598,6 +561,49 @@ public class GameManager {
     public HashMap<String, String> customizeBoard(){
 
         return new HashMap<>();
+    }
+
+    // ======================================================= Parte 2 =================================================
+
+    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
+
+        //A função createInitialBoard inicializa o tabuleiro do jogo com jogadores, abismos e ferramentas. Coloca todos
+        // os jogadores na posição 1, define o jogador atual como o de menor ID e inicia o contador de turnos. Abismos e
+        // ferramentas são posicionados conforme especificado. Retorna true se tudo for válido, caso contrário, false.
+
+        return true;
+    }
+
+    public String getProgrammersInfo() {
+
+        //getProgrammersInfo() retorna uma string formatada com as ferramentas de todos os jogadores vivos. A string
+        // mostra o nome de cada jogador seguido de suas ferramentas, separados por " | ". Jogadores derrotados não
+        // aparecem. Se não houver jogadores vivos, retorna uma string vazia.
+        // Exemplo: "Bruninho : IDE;Herança | Raquelita : No tools".
+
+        return "";
+
+    }
+
+    public String reactToAbyssOrTool() {
+
+        //reactToAbyssOrTool() verifica a casa onde o jogador está posicionado após um movimento. Se houver uma
+        // ferramenta, o jogador a recolhe e recebe uma mensagem. Se houver um abismo, verifica se o jogador tem
+        // ferramenta aplicável para anulá-lo. Se não tiver, aplica o efeito do abismo. Em qualquer caso, avança o
+        // turno para o próximo jogador e retorna uma mensagem explicativa ou null se a casa estiver vazia.
+
+
+        return "";
+    }
+
+    public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
+
+
+    }
+
+    public boolean saveGame(File file) {
+
+        return true;
     }
 
 }
