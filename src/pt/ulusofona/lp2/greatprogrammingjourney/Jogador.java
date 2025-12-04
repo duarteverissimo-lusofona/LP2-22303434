@@ -10,6 +10,7 @@ public class Jogador {
     Cor cor;
     ArrayList<String> linguagensProgramacao;
     Estado estado;
+    ArrayList<String> ferramentas;
 
 
     public Jogador(int id, String nome, Cor cor, ArrayList<String> linguagensProgramacao, int posicao) {
@@ -18,6 +19,7 @@ public class Jogador {
         this.cor = cor;
         this.linguagensProgramacao = linguagensProgramacao;
         this.estado = Estado.EM_JOGO;
+        this.ferramentas = new ArrayList<>();
     }
 
 
@@ -37,12 +39,21 @@ public class Jogador {
         return linguagensProgramacao;
     }
 
+    public ArrayList<String> getFerramentas() {
+        return ferramentas;
+    }
+
+    public void addFerramenta(String ferramenta) {
+        this.ferramentas.add(ferramenta);
+    }
+
     public ArrayList<String> ordenarLang(){
 
         ArrayList<String> lingOrdenadas = new ArrayList<>(linguagensProgramacao);
         lingOrdenadas.sort(String.CASE_INSENSITIVE_ORDER);
         return lingOrdenadas;
     }
+
 
 
     public Estado getEstado() {

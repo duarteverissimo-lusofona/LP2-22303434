@@ -1,5 +1,9 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
+import pt.ulusofona.lp2.greatprogrammingjourney.event.Evento;
+import pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.*;
+import pt.ulusofona.lp2.greatprogrammingjourney.event.tool.*;
+
 import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -302,14 +306,22 @@ public class GameManager {
                     }
                 }
 
+                // Obter as ferramentas
+                String ferramentasStr;
+                ArrayList<String> ferramentas = jogador.getFerramentas();
+                if (ferramentas == null || ferramentas.isEmpty()) {
+                    ferramentasStr = "No tools";
+                } else {
+                    ferramentasStr = String.join(";", ferramentas);
+                }
 
                 // Obter o estado
                 String estado = jogador.estado == Estado.EM_JOGO ? "Em Jogo" : "Derrotado";
 
 
-                // Formato: <ID> | <Nome> | <Pos> | <Linguagens favoritas> | <Estado>
+                // Formato: <ID> | <Nome> | <Pos> | <Ferramentas> | <Linguagens favoritas> | <Estado>
                 return jogador.id + " | " + jogador.nome + " | " + posicao + " | " +
-                        linguagens.toString() + " | " + estado;
+                        ferramentasStr + " | " + linguagens.toString() + " | " + estado;
             }
         }
 
@@ -357,14 +369,7 @@ public class GameManager {
     }
 
     public int getCurrentPlayerID(){
-        /*
-        List<Jogador> jogadores = tabuleiro.getListaJogadores();
-        if(jogadores == null || jogadores.isEmpty()){
-            return -1; // ou outro valor de erro apropriado
-        }
 
-        return jogadores.get(jogadorAtualIndex).getId();
-*/
         return jogadorAtualIndex;
     }
 
@@ -565,24 +570,113 @@ public class GameManager {
 
     // ======================================================= Parte 2 =================================================
 
-    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
+    private Evento createEvento(String tipo, String subtipo) {
+        if (subtipo == null) {
+            return null;
+        }
+        switch (subtipo) {
+            // Abismos
+            case "Erro de sintaxe": return new ErroDeSintaxe();
+            case "Erro de lógica": return new ErroDeLogica();
+            case "Exception": return new ExceptionAbismo();
+            case "File not found exception": return new FileNotFoundExceptionAbismo();
+            case "Ciclo infinito": return new CicloInfinito();
+            case "Código duplicado": return new CodigoDuplicado();
+            case "Efeitos secundários": return new EfeitosSecundarios();
+            case "Blue screen of death": return new BlueScreenOfDeath();
+            case "Crash": return new Crash();
+            case "Segmentation fault": return new SegmentationFault();
 
-        //A função createInitialBoard inicializa o tabuleiro do jogo com jogadores, abismos e ferramentas. Coloca todos
-        // os jogadores na posição 1, define o jogador atual como o de menor ID e inicia o contador de turnos. Abismos e
-        // ferramentas são posicionados conforme especificado. Retorna true se tudo for válido, caso contrário, false.
+            // Ferramentas
+            case "Herança": return new Heranca();
+            case "Testes unitários": return new TestesUnitarios();
+            case "Tratamento de exceções": return new TratamentoDeExcepcoes();
+            case "Programação funcional": return new ProgramacaoFuncional();
+            case "IDE": return new IDE();
+            case "Ajuda do professor": return new AjudaDoProfessor();
+
+            default: return null;
+        }
+    }
+
+
+    public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
+        // Primeiro, cria o tabuleiro básico usando a função original
+        if (!createInitialBoard(playerInfo, worldSize)) {
+            return false;
+        }
+
+        // Depois, adiciona os abismos e ferramentas
+        if (abyssesAndTools != null) {
+            for (String[] item : abyssesAndTools) {
+                if (item == null || item.length != 3) {
+                    return false;
+                }
+
+                String tipo = item[0];
+                String subtipo = item[1];
+                int position;
+
+                try {
+                    position = Integer.parseInt(item[2]);
+                } catch (NumberFormatException e) {
+                    return false;
+                }
+
+                // Validações da posição
+                if (position <= 1 || position >= worldSize) {
+                    return false;
+                }
+
+                Evento evento = createEvento(tipo, subtipo);
+                if (evento == null) {
+                    return false;
+                }
+
+                Slot slot = tabuleiro.getSlot(position - 1);
+                if (slot.getEvento() != null) {
+                    return false; // Já existe um evento neste slot
+                }
+                slot.setEvento(evento);
+            }
+        }
 
         return true;
     }
 
     public String getProgrammersInfo() {
+        if (tabuleiro == null || tabuleiro.getListaJogadores() == null) {
+            return "";
+        }
 
-        //getProgrammersInfo() retorna uma string formatada com as ferramentas de todos os jogadores vivos. A string
-        // mostra o nome de cada jogador seguido de suas ferramentas, separados por " | ". Jogadores derrotados não
-        // aparecem. Se não houver jogadores vivos, retorna uma string vazia.
-        // Exemplo: "Bruninho : IDE;Herança | Raquelita : No tools".
+        List<Jogador> jogadores = tabuleiro.getListaJogadores();
+        StringBuilder result = new StringBuilder();
+        List<Jogador> jogadoresVivos = new ArrayList<>();
 
-        return "";
+        for (Jogador jogador : jogadores) {
+            if (jogador.getEstado() == Estado.EM_JOGO) {
+                jogadoresVivos.add(jogador);
+            }
+        }
+        
+        for (int i = 0; i < jogadoresVivos.size(); i++) {
+            Jogador jogador = jogadoresVivos.get(i);
+            result.append(jogador.getNome());
+            result.append(" : ");
 
+            ArrayList<String> ferramentas = jogador.getFerramentas();
+            if (ferramentas == null || ferramentas.isEmpty()) {
+                result.append("No tools");
+            } else {
+                result.append(String.join(";", ferramentas));
+            }
+
+            if (i < jogadoresVivos.size() - 1) {
+                result.append(" | ");
+            }
+        }
+
+        return result.toString();
     }
 
     public String reactToAbyssOrTool() {

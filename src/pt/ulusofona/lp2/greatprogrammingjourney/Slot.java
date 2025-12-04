@@ -1,5 +1,7 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
+import pt.ulusofona.lp2.greatprogrammingjourney.event.Evento;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,9 +9,18 @@ public class Slot {
 
         int nrSlot;
         List<Jogador> jogadores = new ArrayList<>();
+        private Evento evento;
 
         public Slot(int nrSlot) {
             this.nrSlot = nrSlot;
+        }
+
+        public void setEvento(Evento evento) {
+            this.evento = evento;
+        }
+
+        public Evento getEvento() {
+            return evento;
         }
 
         void addPlayer(Jogador jogador){
