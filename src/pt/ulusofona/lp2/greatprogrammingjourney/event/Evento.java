@@ -36,4 +36,9 @@ public abstract class Evento {
     }
 
     public abstract void interargirJogador();
+
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

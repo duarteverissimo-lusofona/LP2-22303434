@@ -191,6 +191,16 @@ public class GameManager {
             return "glory.png";
         }
 
+        if(tabuleiro.getSlot(nrSquare - 1).getEvento() == null){
+            return null;
+        }
+
+        String png = tabuleiro.getSlot(nrSquare - 1).getEvento().getImagem();
+
+        if(png != null){
+            return png;
+        }
+
         return null;
     }
 
@@ -357,15 +367,27 @@ public class GameManager {
             return null;
         }
 
+        String ids = slot.getIDJogadores();
+
         // Se a casa estiver vazia → retorna [""]
         if (slot.jogadores == null || slot.jogadores.isEmpty()) {
-            return new String[]{""};
+            ids = "";
+        } else {
+            ids = slot.getIDJogadores();
         }
 
         // Construir string com IDs separados por vírgula
-        String ids = slot.getIDJogadores();
 
-        return new String[]{ids};
+        String nomeEvento = "";
+
+        if(tabuleiro.getSlot(position - 1).getEvento() == null){
+            nomeEvento = "";
+        } else{
+            nomeEvento = tabuleiro.getSlot(position - 1).getEvento().getNome();
+
+        }
+
+        return new String[]{ids,nomeEvento,""};
     }
 
     public int getCurrentPlayerID(){
@@ -570,33 +592,41 @@ public class GameManager {
 
     // ======================================================= Parte 2 =================================================
 
-    private Evento createEvento(String tipo, String subtipo) {
-        if (subtipo == null) {
-            return null;
-        }
-        switch (subtipo) {
-            // Abismos
-            case "Erro de sintaxe": return new ErroDeSintaxe();
-            case "Erro de lógica": return new ErroDeLogica();
-            case "Exception": return new ExceptionAbismo();
-            case "File not found exception": return new FileNotFoundExceptionAbismo();
-            case "Ciclo infinito": return new CicloInfinito();
-            case "Código duplicado": return new CodigoDuplicado();
-            case "Efeitos secundários": return new EfeitosSecundarios();
-            case "Blue screen of death": return new BlueScreenOfDeath();
-            case "Crash": return new Crash();
-            case "Segmentation fault": return new SegmentationFault();
+    private Abyss createAbyss(int id) {
+        return switch (id) {
+            case 0 -> new ErroDeSintaxe();
+            case 1 -> new ErroDeLogica();
+            case 2 -> new ExceptionAbismo();
+            case 3 -> new FileNotFoundExceptionAbismo();
+            case 4 -> new Crash();
+            case 5 -> new CodigoDuplicado();
+            case 6 -> new EfeitosSecundarios();
+            case 7 -> new BlueScreenOfDeath();
+            case 8 -> new CicloInfinito();
+            case 9 -> new SegmentationFault();
+            default -> null;
+        };
+    }
 
-            // Ferramentas
-            case "Herança": return new Heranca();
-            //case "Testes unitários": return new TestesUnitarios();
-            case "Tratamento de exceções": return new TratamentoDeExcepcoes();
-            case "Programação funcional": return new ProgramacaoFuncional();
-            case "IDE": return new IDE();
-            case "Ajuda do professor": return new AjudaDoProfessor();
+    private Tool createTool(int id) {
+        return switch (id) {
+            case 0 -> new Heranca();
+            case 1 -> new ProgramacaoFuncional();
+            case 2 -> new TestesUnitarios();
+            case 3 -> new TratamentoDeExcepcoes();
+            case 4 -> new IDE();
+            case 5 -> new AjudaDoProfessor();
+            default -> null;
+        };
+    }
 
-            default: return null;
-        }
+    private Evento createEvento(int tipo, int subtipo) {
+
+        return switch (tipo) {
+            case 0 -> createAbyss(subtipo);
+            case 1 -> createTool(subtipo);
+            default -> null;
+        };
     }
 
 public Jogador getJogador(int id) {
@@ -606,30 +636,70 @@ public Jogador getJogador(int id) {
     return tabuleiro.getPlayer(id);
 }
 
-
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
-        // Primeiro, cria o tabuleiro básico usando a função original
+
+        // Debug input info
+        {
+            System.out.println("\nPlayer input:");
+            for (String[] s : playerInfo) {
+                for (String ss : s) {
+                    System.out.printf(ss + " ");
+                }
+                System.out.println("");
+            }
+
+            System.out.println("\nEvent input (tipo, subtipo, posicao):");
+            for (String[] s : abyssesAndTools) {
+                for (String ss : s) {
+                    System.out.printf(ss + " ");
+                }
+                System.out.println("");
+            }
+        }
+
+
+        // Cria o tabueliro normal inicial com a funçao original
         if (!createInitialBoard(playerInfo, worldSize)) {
             return false;
         }
 
-        // Depois, adiciona os abismos e ferramentas
+        // Se existeirem eventos na input,são adicionados
         if (abyssesAndTools != null) {
+
+            // abyssesAndTools é Array de Array -> array de eventos (cada linha), cada evento (linha) é um array de 3 informaçoes (cada linha tem 3 partes)
+            // Para cada linha/item verifico se tem 3 partes e não é null
             for (String[] item : abyssesAndTools) {
                 if (item == null || item.length != 3) {
                     return false;
                 }
 
-                String tipo = item[0];
-                String subtipo = item[1];
+                // Vou buscar as 3 informaçoes desta linha que rpepresenta um evento
+                // posicao 0 -> tipo (abyss ou tool - 0 ou 1)
+                // posicao 1 -> ID
+                // posicao 2 -> posicao do evento no tabuleiro
+                int tipo;
+                int subtipo;
                 int position;
 
+                // Converter informaços "raw" que vem em String para int
+                // posiçao está feito.
                 try {
+                    tipo = Integer.parseInt(item[0]);
+                    subtipo = Integer.parseInt(item[1]);
                     position = Integer.parseInt(item[2]);
                 } catch (NumberFormatException e) {
                     return false;
                 }
 
+                //Validações do tipo
+                if(tipo < 0 || tipo > 1){
+                    return false;
+                }
+
+                //Validações do subtipo
+                if(subtipo < 0 ){
+                    return false;
+                }
                 // Validações da posição
                 if (position <= 1 || position >= worldSize) {
                     return false;
@@ -647,7 +717,12 @@ public Jogador getJogador(int id) {
                 slot.setEvento(evento);
             }
         }
-
+        for(int i = 0; i < worldSize;i++){
+            if(tabuleiro.getSlot(i).getEvento() != null) {
+                System.out.println(tabuleiro.getSlot(i).getNrSlot());
+                System.out.println(tabuleiro.getSlot(i).getEvento());
+            }
+        }
         return true;
     }
 
