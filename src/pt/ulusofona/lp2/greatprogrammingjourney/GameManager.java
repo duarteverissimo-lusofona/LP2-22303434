@@ -329,8 +329,6 @@ public class GameManager {
         return null;
     }
 
-
-
     public String[] getSlotInfo(int position){
 
 
@@ -591,7 +589,7 @@ public class GameManager {
 
             // Ferramentas
             case "Herança": return new Heranca();
-            case "Testes unitários": return new TestesUnitarios();
+            //case "Testes unitários": return new TestesUnitarios();
             case "Tratamento de exceções": return new TratamentoDeExcepcoes();
             case "Programação funcional": return new ProgramacaoFuncional();
             case "IDE": return new IDE();
