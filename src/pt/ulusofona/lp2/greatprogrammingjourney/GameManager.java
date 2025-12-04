@@ -612,7 +612,7 @@ public class GameManager {
         return switch (id) {
             case 0 -> new Heranca();
             case 1 -> new ProgramacaoFuncional();
-            case 2 -> new TestesUnitarios();
+           // case 2 -> new TestesUnitarios();
             case 3 -> new TratamentoDeExcepcoes();
             case 4 -> new IDE();
             case 5 -> new AjudaDoProfessor();
