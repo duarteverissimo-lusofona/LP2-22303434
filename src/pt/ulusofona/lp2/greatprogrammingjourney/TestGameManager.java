@@ -108,5 +108,40 @@ class TestGameManager {
         assertEquals(3, gm.getCurrentPlayerID());
     }
 
+    @Test
+    void testGetProgrammersInfo() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Player One", "Java", "PURPLE"},
+                {"2", "Player Two", "Python", "BLUE"},
+                {"3", "Player Three", "C", "GREEN"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // Player 1 has one tool
+        gm.getJogador(1).addFerramenta("IDE");
+
+        // Player 3 is defeated
+        gm.getJogador(3).setEstado(Estado.DERROTADO);
+
+        String expected = "Player One : IDE | Player Two : No tools";
+        assertEquals(expected, gm.getProgrammersInfo());
+    }
+
+    @Test
+    void testCreateInitialBoardWithAbyssesAndTools() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Player One", "Java", "PURPLE"},
+                {"2", "Player Two", "Python", "BLUE"}
+        };
+        String[][] abyssesAndTools = new String[][]{
+                {"abismo", "Erro de sintaxe", "3"},
+                {"ferramenta", "IDE", "4"}
+        };
+
+        assertTrue(gm.createInitialBoard(players, 10, abyssesAndTools));
+    }
+
 
 }

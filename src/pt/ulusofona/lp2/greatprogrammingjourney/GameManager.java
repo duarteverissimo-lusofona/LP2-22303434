@@ -329,6 +329,8 @@ public class GameManager {
         return null;
     }
 
+
+
     public String[] getSlotInfo(int position){
 
 
@@ -598,6 +600,13 @@ public class GameManager {
             default: return null;
         }
     }
+
+public Jogador getJogador(int id) {
+    if (tabuleiro == null) {
+       return null;
+    }
+    return tabuleiro.getPlayer(id);
+}
 
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
