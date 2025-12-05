@@ -13,4 +13,14 @@ public abstract class Tool extends Evento {
     public void interargirJogador() {
 
     }
+    
+    @Override
+    public boolean isTool() {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "F: ";
+    }
 }

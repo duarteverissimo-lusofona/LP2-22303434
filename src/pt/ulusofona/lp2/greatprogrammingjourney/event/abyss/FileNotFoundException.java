@@ -1,9 +1,10 @@
 package pt.ulusofona.lp2.greatprogrammingjourney.event.abyss;
 
-public class SegmentationFault extends Abyss {
-    public SegmentationFault() {
 
-        super("Segmentation Fault", 9, "core-dumped.png");
+public class FileNotFoundException extends Abyss {
+    public FileNotFoundException() {
+
+        super("File Not Found Exeption", 3, "file-not-found-exception.png");
     }
 
     @Override

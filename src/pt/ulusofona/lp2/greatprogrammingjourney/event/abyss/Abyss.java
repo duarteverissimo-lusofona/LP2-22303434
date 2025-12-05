@@ -15,4 +15,14 @@ public abstract class Abyss extends Evento {
     public void interargirJogador() {
 
     }
+    
+    @Override
+    public boolean isTool() {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "A: ";
+    }
 }

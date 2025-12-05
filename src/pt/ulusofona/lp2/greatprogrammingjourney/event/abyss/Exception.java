@@ -1,9 +1,10 @@
 package pt.ulusofona.lp2.greatprogrammingjourney.event.abyss;
 
-public class SegmentationFault extends Abyss {
-    public SegmentationFault() {
 
-        super("Segmentation Fault", 9, "core-dumped.png");
+public class Exception extends Abyss {
+    public Exception() {
+
+        super("Exception", 2, "exception.png");
     }
 
     @Override

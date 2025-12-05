@@ -5,4 +5,9 @@ public class AjudaDoProfessor extends Tool {
 
         super("Ajuda Do Professor", 5, "ajuda-professor.png");
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + getId();
+    }
 }

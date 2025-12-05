@@ -36,6 +36,9 @@ public abstract class Evento {
     }
 
     public abstract void interargirJogador();
+    
+    // Polimorfismo: permite distinguir Tool de Abyss sem usar instanceof
+    public abstract boolean isTool();
 
     @Override
     public String toString() {

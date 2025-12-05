@@ -2,11 +2,11 @@ package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import pt.ulusofona.lp2.greatprogrammingjourney.event.Evento;
 import pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.*;
+import pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception;
 import pt.ulusofona.lp2.greatprogrammingjourney.event.tool.*;
 
 import javax.swing.*;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -339,55 +339,35 @@ public class GameManager {
         return null;
     }
 
-    public String[] getSlotInfo(int position){
-
-
-        // Validar se o tabuleiro existe
+    public String[] getSlotInfo(int position) {
+        // Validar tabuleiro
         if (tabuleiro == null || tabuleiro.slots == null) {
             return null;
         }
-        List<Jogador> jogadores = tabuleiro.getListaJogadores();
 
-        // Validar se a lista de jogadores existe
-        if (jogadores == null) {
-            return null;
-        }
-
+        // Validar posição
         int boardSize = tabuleiro.getWorldSize();
-
-        if(position < 1 || position > boardSize){
+        if (position < 1 || position > boardSize) {
             return null;
         }
 
-        // Obter o slot na posição (position - 1 porque os slots começam em index 0)
+        // Obter o slot (position - 1 porque os slots começam em index 0)
         Slot slot = tabuleiro.getSlot(position - 1);
-
-        // Se o slot não existir
         if (slot == null) {
             return null;
         }
 
-        String ids = slot.getIDJogadores();
+        // [0] IDs dos jogadores
+        String ids = (slot.jogadores == null || slot.jogadores.isEmpty()) ? "" : slot.getIDJogadores();
 
-        // Se a casa estiver vazia → retorna [""]
-        if (slot.jogadores == null || slot.jogadores.isEmpty()) {
-            ids = "";
-        } else {
-            ids = slot.getIDJogadores();
-        }
+        // [1] Nome do evento (descrição)
+        Evento evento = slot.getEvento();
+        String nomeEvento = (evento == null) ? "" : evento.getNome();
 
-        // Construir string com IDs separados por vírgula
+        // [2] Tipo do evento (formato "A:X" ou "T:X")
+        String tipo = (evento == null) ? "" : evento.toString();
 
-        String nomeEvento = "";
-
-        if(tabuleiro.getSlot(position - 1).getEvento() == null){
-            nomeEvento = "";
-        } else{
-            nomeEvento = tabuleiro.getSlot(position - 1).getEvento().getNome();
-
-        }
-
-        return new String[]{ids,nomeEvento,""};
+        return new String[]{ids, nomeEvento, tipo};
     }
 
     public int getCurrentPlayerID(){
@@ -596,8 +576,8 @@ public class GameManager {
         return switch (id) {
             case 0 -> new ErroDeSintaxe();
             case 1 -> new ErroDeLogica();
-            case 2 -> new ExceptionAbismo();
-            case 3 -> new FileNotFoundExceptionAbismo();
+            case 2 -> new Exception();
+            case 3 -> new FileNotFoundException();
             case 4 -> new Crash();
             case 5 -> new CodigoDuplicado();
             case 6 -> new EfeitosSecundarios();
@@ -612,7 +592,7 @@ public class GameManager {
         return switch (id) {
             case 0 -> new Heranca();
             case 1 -> new ProgramacaoFuncional();
-           // case 2 -> new TestesUnitarios();
+            case 2 -> new TestesUnitarios();
             case 3 -> new TratamentoDeExcepcoes();
             case 4 -> new IDE();
             case 5 -> new AjudaDoProfessor();
@@ -762,17 +742,59 @@ public Jogador getJogador(int id) {
     }
 
     public String reactToAbyssOrTool() {
-
-        //reactToAbyssOrTool() verifica a casa onde o jogador está posicionado após um movimento. Se houver uma
-        // ferramenta, o jogador a recolhe e recebe uma mensagem. Se houver um abismo, verifica se o jogador tem
-        // ferramenta aplicável para anulá-lo. Se não tiver, aplica o efeito do abismo. Em qualquer caso, avança o
-        // turno para o próximo jogador e retorna uma mensagem explicativa ou null se a casa estiver vazia.
-
-
-        return "";
+        // Validações iniciais
+        if (tabuleiro == null) {
+            return null;
+        }
+        
+        // Obter jogador atual
+        Jogador jogador = tabuleiro.getPlayer(jogadorAtualIndex);
+        if (jogador == null) {
+            return null;
+        }
+        
+        // Encontrar posição atual do jogador
+        int posicaoJogador = tabuleiro.getPosOf(jogador);
+        if (posicaoJogador < 1) {
+            return null;
+        }
+        
+        Slot slotAtual = tabuleiro.getSlot(posicaoJogador - 1);
+        if (slotAtual == null) {
+            return null;
+        }
+        
+        // Se não houver evento na casa, retorna null
+        Evento evento = slotAtual.getEvento();
+        if (evento == null) {
+            return null;
+        }
+        
+        // POLIMORFISMO: usa isTool() para distinguir sem instanceof
+        if (evento.isTool()) {
+            // É uma ferramenta - jogador recolhe
+            jogador.addFerramenta(evento.getNome());
+            slotAtual.setEvento(null); // Remove a ferramenta do slot
+            return "Recolheu ferramenta: " + evento.getNome();
+        } else {
+            // É um Abyss - verificar se jogador tem ferramenta para anular
+            // TODO: Implementar lógica de mapeamento ferramenta -> abismo
+            // Por agora, apenas aplica o efeito do abismo
+            
+            // Exemplo de estrutura para quando soubermos os mapeamentos:
+            // String ferramentaAnuladora = getFerramentaQueAnula(evento);
+            // if (jogador.getFerramentas().contains(ferramentaAnuladora)) {
+            //     jogador.getFerramentas().remove(ferramentaAnuladora);
+            //     return evento.getNome() + " anulado por " + ferramentaAnuladora;
+            // }
+            
+            // Se não tiver ferramenta, aplica efeito do abismo
+            // TODO: Adicionar lógica de recuo (ex: "Recua 1 casa")
+            return "Caiu num " + evento.getNome().toLowerCase() + "! Recua 1 casa";
+        }
     }
 
-    public void loadGame(File file) throws InvalidFileException, FileNotFoundException {
+    public void loadGame(File file) throws InvalidFileException, java.io.FileNotFoundException {
 
 
     }
