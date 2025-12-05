@@ -1,7 +1,7 @@
 package pt.ulusofona.lp2.greatprogrammingjourney.event.tool;
 
-public class TestesUnitarios extends Tool {
-    public TestesUnitarios() {
+public class UnitTests extends Tool {
+    public UnitTests() {
 
         super("Testes Unitários", 2, "unit-tests.png");
     }
