@@ -400,6 +400,32 @@ public class GameManager {
         return (proximoID == Integer.MAX_VALUE) ? menorID : proximoID;
     }
 
+    // Obtém o jogador anterior (o que acabou de jogar antes do turno atual)
+    public int getPreviousPlayer(){
+        List<Jogador> jogadores = tabuleiro.getListaJogadores();
+
+        // Encontrar o maior ID menor que o atual
+        int anteriorID = Integer.MIN_VALUE;
+        int maiorID = Integer.MIN_VALUE;
+
+        for(Jogador j : jogadores){
+            int id = j.getId();
+
+            // Procurar o maior ID menor que o atual
+            if(id < jogadorAtualIndex && id > anteriorID){
+                anteriorID = id;
+            }
+
+            // Guardar o maior ID geral (para wrap-around)
+            if(id > maiorID){
+                maiorID = id;
+            }
+        }
+
+        // Se não há anterior menor, volta ao maior (wrap-around)
+        return (anteriorID == Integer.MIN_VALUE) ? maiorID : anteriorID;
+    }
+
     public boolean moveCurrentPlayer(int nrSpaces){
         if(tabuleiro == null){
             return false;
@@ -747,8 +773,9 @@ public Jogador getJogador(int id) {
             return null;
         }
         
-        // Obter jogador atual
-        Jogador jogador = tabuleiro.getPlayer(jogadorAtualIndex);
+        // Obter jogador que acabou de jogar (moveCurrentPlayer já avançou o turno)
+        int idJogadorAnterior = getPreviousPlayer();
+        Jogador jogador = tabuleiro.getPlayer(idJogadorAnterior);
         if (jogador == null) {
             return null;
         }
@@ -777,20 +804,20 @@ public Jogador getJogador(int id) {
             slotAtual.setEvento(null); // Remove a ferramenta do slot
             return "Recolheu ferramenta: " + evento.getNome();
         } else {
-            // É um Abyss - verificar se jogador tem ferramenta para anular
-            // TODO: Implementar lógica de mapeamento ferramenta -> abismo
-            // Por agora, apenas aplica o efeito do abismo
+            // É um Abyss - fazer cast seguro para Abyss (sabemos que não é Tool)
+            Abyss abyss = (Abyss) evento;
+            String ferramentaAnuladora = abyss.getFerramentaAnuladora();
             
-            // Exemplo de estrutura para quando soubermos os mapeamentos:
-            // String ferramentaAnuladora = getFerramentaQueAnula(evento);
-            // if (jogador.getFerramentas().contains(ferramentaAnuladora)) {
-            //     jogador.getFerramentas().remove(ferramentaAnuladora);
-            //     return evento.getNome() + " anulado por " + ferramentaAnuladora;
-            // }
+            // Verificar se existe ferramenta que anula E se o jogador a tem
+            if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
+                // Jogador tem a ferramenta - anula o abismo
+                jogador.getFerramentas().remove(ferramentaAnuladora);
+                return abyss.getNome() + " anulado por " + ferramentaAnuladora;
+            }
             
-            // Se não tiver ferramenta, aplica efeito do abismo
-            // TODO: Adicionar lógica de recuo (ex: "Recua 1 casa")
-            return "Caiu num " + evento.getNome().toLowerCase() + "! Recua 1 casa";
+            // Se não tiver ferramenta ou abismo não tem anulador, aplica efeito do abismo
+            // TODO: Adicionar lógica de recuo real
+            return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua 1 casa";
         }
     }
 

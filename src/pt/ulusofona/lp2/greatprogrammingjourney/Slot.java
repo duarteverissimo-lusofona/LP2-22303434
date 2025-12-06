@@ -20,6 +20,7 @@ public class Slot {
         }
 
         public Evento getEvento() {
+
             return evento;
         }
 
