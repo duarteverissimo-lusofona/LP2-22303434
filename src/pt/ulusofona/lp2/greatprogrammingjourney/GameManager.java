@@ -663,13 +663,28 @@ public class GameManager {
         // - Assembly: máximo 2 casas por turno
         // ═════════════════════════════════════════════════════════════════
         String primeiraLinguagem = jogadorAtual.getPrimeiraLinguagem();
-        System.out.println("DEBUG LANG: [" + primeiraLinguagem + "] nrSpaces=" + nrSpaces);
+        
+        // DEBUG EXTENSIVO
+        System.out.println("========== DEBUG RESTRIÇÃO DE LINGUAGEM ==========");
+        System.out.println("Jogador ID: " + jogadorAtual.getId());
+        System.out.println("Jogador Nome: " + jogadorAtual.getNome());
+        System.out.println("getPrimeiraLinguagem() retornou: [" + primeiraLinguagem + "]");
+        System.out.println("primeiraLinguagem == null? " + (primeiraLinguagem == null));
+        if (primeiraLinguagem != null) {
+            System.out.println("primeiraLinguagem.length(): " + primeiraLinguagem.length());
+            System.out.println("primeiraLinguagem bytes: " + java.util.Arrays.toString(primeiraLinguagem.getBytes()));
+            System.out.println("primeiraLinguagem.equals(\"Assembly\"): " + primeiraLinguagem.equals("Assembly"));
+            System.out.println("primeiraLinguagem.equalsIgnoreCase(\"Assembly\"): " + primeiraLinguagem.equalsIgnoreCase("Assembly"));
+            System.out.println("primeiraLinguagem.equals(\"C\"): " + primeiraLinguagem.equals("C"));
+        }
+        System.out.println("nrSpaces: " + nrSpaces);
+        System.out.println("==================================================");
         
         if (primeiraLinguagem != null) {
             // Programadores C só podem mover até 3 casas
             if (primeiraLinguagem.equalsIgnoreCase("C")) {
                 if (nrSpaces > 3) {
-                    System.out.println("DEBUG: C bloqueado (max 3), tentou " + nrSpaces);
+                    System.out.println(">>> BLOQUEADO: C tentou mover " + nrSpaces + " casas (max 3)");
                     jogadorAtualIndex = getNextPlayer();
                     return false;
                 }
@@ -678,13 +693,13 @@ public class GameManager {
             // Programadores Assembly só podem mover até 2 casas
             if (primeiraLinguagem.equalsIgnoreCase("Assembly")) {
                 if (nrSpaces > 2) {
-                    System.out.println("DEBUG: Assembly bloqueado (max 2), tentou " + nrSpaces);
+                    System.out.println(">>> BLOQUEADO: Assembly tentou mover " + nrSpaces + " casas (max 2)");
                     jogadorAtualIndex = getNextPlayer();
                     return false;
                 }
             }
         }
-        System.out.println("DEBUG: Movimento permitido. Retornando TRUE");
+        System.out.println(">>> MOVIMENTO PERMITIDO: Retornando TRUE");
 
         
         // Guardar o valor do dado (necessário para o abismo "ErroDeLogica")

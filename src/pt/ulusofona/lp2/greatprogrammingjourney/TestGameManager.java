@@ -305,4 +305,154 @@ class TestGameManager {
     }
 
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TESTES DE DIAGNÓSTICO - ROTAÇÃO DE JOGADORES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Test
+    void testGetCurrentPlayerID_afterInit_returnsSmallestID() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"5", "Player5", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"8", "Player8", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 10);
+        
+        // O jogador com menor ID (2) deve começar
+        assertEquals(2, gm.getCurrentPlayerID(), "Jogador com menor ID deve começar");
+    }
+
+    @Test
+    void testGetNextPlayer_fromSmallestID_returnsNextID() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"3", "Player3", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 10);
+        
+        // Jogador atual é 1, próximo deve ser 2
+        assertEquals(1, gm.getCurrentPlayerID(), "Jogador 1 deve começar");
+        assertEquals(2, gm.getNextPlayer(), "Próximo jogador deve ser 2");
+    }
+
+    @Test
+    void testGetNextPlayer_fromLargestID_wrapsToSmallest() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"3", "Player3", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 10);
+        
+        // Mover duas vezes para chegar ao jogador 3
+        gm.moveCurrentPlayer(1); // 1 -> 2
+        gm.moveCurrentPlayer(1); // 2 -> 3
+        
+        assertEquals(3, gm.getCurrentPlayerID(), "Jogador 3 deve ser o atual");
+        assertEquals(1, gm.getNextPlayer(), "Próximo deve voltar ao jogador 1");
+    }
+
+    @Test
+    void testPlayerRotation_afterMove_advancesToNextPlayer() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+        
+        System.out.println("=== TESTE ROTAÇÃO ===");
+        System.out.println("Antes do movimento:");
+        System.out.println("  getCurrentPlayerID() = " + gm.getCurrentPlayerID());
+        System.out.println("  getNextPlayer() = " + gm.getNextPlayer());
+        
+        // Jogador 1 move
+        boolean moved = gm.moveCurrentPlayer(1);
+        System.out.println("moveCurrentPlayer(1) retornou: " + moved);
+        
+        System.out.println("Depois do movimento:");
+        System.out.println("  getCurrentPlayerID() = " + gm.getCurrentPlayerID());
+        
+        // Após movimento, deve ser jogador 2
+        assertEquals(2, gm.getCurrentPlayerID(), "Após jogador 1 mover, jogador 2 deve jogar");
+    }
+
+    @Test
+    void testPlayerRotation_fullCycle_returnsToFirstPlayer() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"3", "Player3", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+        
+        System.out.println("=== TESTE CICLO COMPLETO ===");
+        
+        // Jogador 1
+        assertEquals(1, gm.getCurrentPlayerID(), "Início: Jogador 1");
+        gm.moveCurrentPlayer(1);
+        
+        // Jogador 2
+        assertEquals(2, gm.getCurrentPlayerID(), "Após 1º move: Jogador 2");
+        gm.moveCurrentPlayer(1);
+        
+        // Jogador 3
+        assertEquals(3, gm.getCurrentPlayerID(), "Após 2º move: Jogador 3");
+        gm.moveCurrentPlayer(1);
+        
+        // Volta ao Jogador 1
+        assertEquals(1, gm.getCurrentPlayerID(), "Após 3º move: Volta ao Jogador 1");
+    }
+
+    @Test
+    void testPlayerRotation_withNonSequentialIDs() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"10", "Player10", "Java", "PURPLE"},
+                {"5", "Player5", "Python", "BLUE"},
+                {"20", "Player20", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+        
+        System.out.println("=== TESTE IDS NÃO SEQUENCIAIS ===");
+        
+        // Menor ID é 5
+        assertEquals(5, gm.getCurrentPlayerID(), "Início: Jogador 5 (menor ID)");
+        gm.moveCurrentPlayer(1);
+        
+        // Próximo é 10
+        assertEquals(10, gm.getCurrentPlayerID(), "Após 1º move: Jogador 10");
+        gm.moveCurrentPlayer(1);
+        
+        // Próximo é 20
+        assertEquals(20, gm.getCurrentPlayerID(), "Após 2º move: Jogador 20");
+        gm.moveCurrentPlayer(1);
+        
+        // Volta ao 5
+        assertEquals(5, gm.getCurrentPlayerID(), "Após 3º move: Volta ao Jogador 5");
+    }
+
+    @Test
+    void testGetPreviousPlayer_basic() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"3", "Player3", "Kotlin", "GREEN"}
+        };
+        gm.createInitialBoard(players, 10);
+        
+        // Jogador 1 joga
+        gm.moveCurrentPlayer(1);
+        
+        // Agora é jogador 2, anterior deve ser 1
+        assertEquals(2, gm.getCurrentPlayerID(), "Atual deve ser 2");
+        assertEquals(1, gm.getPreviousPlayer(), "Anterior deve ser 1");
+    }
+
 }
