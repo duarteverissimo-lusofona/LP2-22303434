@@ -290,8 +290,8 @@ public class GameManager {
         // Definir quem começa: o jogador com menor ID
         jogadorAtualIndex = menorId;
         
-        // O jogo começa no turno 1
-        numTurnos = 1;
+        // O jogo começa no turno 0 (primeiro movimento incrementa para 1)
+        numTurnos = 0;
         
         // Limpar dados de jogos anteriores (reset completo)
         ultimoDado = 0;
@@ -656,24 +656,34 @@ public class GameManager {
         // Algumas linguagens têm limites de movimento:
         // - C: máximo 3 casas por turno
         // - Assembly: máximo 2 casas por turno
+        // A restrição aplica-se se o jogador TEM a linguagem (qualquer posição)
         // ═════════════════════════════════════════════════════════════════
-        String primeiraLinguagem = jogadorAtual.getPrimeiraLinguagem();
+        ArrayList<String> linguagens = jogadorAtual.getLinguagens();
         
-        if (primeiraLinguagem != null) {
-            // Programadores C só podem mover até 3 casas
-            if (primeiraLinguagem.equalsIgnoreCase("C")) {
-                if (nrSpaces > 3) {
-                    jogadorAtualIndex = getNextPlayer();
-                    return false;
+        if (linguagens != null) {
+            // Verificar se tem C em qualquer posição
+            boolean temC = false;
+            boolean temAssembly = false;
+            
+            for (String lang : linguagens) {
+                if (lang != null && lang.trim().equalsIgnoreCase("C")) {
+                    temC = true;
+                }
+                if (lang != null && lang.trim().equalsIgnoreCase("Assembly")) {
+                    temAssembly = true;
                 }
             }
             
+            // Programadores C só podem mover até 3 casas
+            if (temC && nrSpaces > 3) {
+                jogadorAtualIndex = getNextPlayer();
+                return false;
+            }
+            
             // Programadores Assembly só podem mover até 2 casas
-            if (primeiraLinguagem.equalsIgnoreCase("Assembly")) {
-                if (nrSpaces > 2) {
-                    jogadorAtualIndex = getNextPlayer();
-                    return false;
-                }
+            if (temAssembly && nrSpaces > 2) {
+                jogadorAtualIndex = getNextPlayer();
+                return false;
             }
         }
 
@@ -704,7 +714,7 @@ public class GameManager {
         int boardSize = tabuleiro.getWorldSize();
         int posicaoFinal = 0;
 
-        if(posicaoDestino >= boardSize){
+        if(posicaoDestino > boardSize){
             // Ultrapassou! Calcular o "bounce"
             int excesso = posicaoDestino - boardSize;
             posicaoFinal = boardSize - excesso;
