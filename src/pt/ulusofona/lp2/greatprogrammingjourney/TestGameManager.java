@@ -455,4 +455,60 @@ class TestGameManager {
         assertEquals(1, gm.getPreviousPlayer(), "Anterior deve ser 1");
     }
 
+
+    // TESTE TEORIA A (Erro 1): Verificar se turno avança uma ou duas vezes
+    @Test
+    void testLanguageRestriction_turnAdvancesOnlyOnce() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "C Dev", "C", "PURPLE"},      // C: max 3 casas
+                {"2", "Player2", "Java", "BLUE"},
+                {"3", "Player3", "Python", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        // Jogador 1 (C) tenta mover 4 casas (inválido)
+        assertEquals(1, gm.getCurrentPlayerID(), "Início: jogador 1");
+        gm.moveCurrentPlayer(4); // Deveria falhar e passar para 2
+
+        assertEquals(2, gm.getCurrentPlayerID(),
+                "Após movimento inválido de C, deveria ser jogador 2, não 3");
+    }
+
+    // TESTE TEORIA A (Erro 2): numTurnos para jogadores presos
+    @Test
+    void testTurnCount_incrementsForTrappedPlayers() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // Simular jogador 1 preso
+        gm.getJogador(1).setEstado(Estado.PRESO);
+
+        // Tentar mover jogador preso
+        gm.moveCurrentPlayer(1); // Deve passar turno mas contar?
+
+        // Verificar quantos turnos contou
+        // (precisa de um getter para numTurnos ou verificar via getGameResults)
+    }
+
+    // TESTE TEORIA B (Erro 2): numTurnos para restrições de linguagem
+    @Test
+    void testTurnCount_incrementsForLanguageRestriction() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // C tenta mover 5 (inválido)
+        gm.moveCurrentPlayer(5);
+
+        // O turno deveria ter contado?
+    }
+
 }
