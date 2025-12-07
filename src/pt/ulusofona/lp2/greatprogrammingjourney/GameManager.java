@@ -205,7 +205,6 @@ public class GameManager {
 
         // Tudo validado! Criar o jogador na posição 1 (início do tabuleiro)
         Jogador jogador = new Jogador(Integer.parseInt(idStr), nome, cor, linguagensProgramacao, 1);
-        System.out.println(jogador);  // Debug: mostra o jogador criado
         return jogador;
     }
 
@@ -299,11 +298,7 @@ public class GameManager {
         posicaoAnterior.clear();
         posicaoHaDoisTurnos.clear();
         
-        // Debug: mostrar estado inicial
-        System.out.println(worldSize);
-        for(Jogador jogador : tabuleiro.getListaJogadores()){
-            System.out.println(jogador);
-        }
+
         
         return true;  // Tabuleiro criado com sucesso!
     }
@@ -329,11 +324,11 @@ public class GameManager {
             return "glory.png";
         }
 
-        if(tabuleiro.getSlot(nrSquare - 1).getEvento() == null){
+        if(tabuleiro.getSlot(nrSquare).getEvento() == null){
             return null;
         }
 
-        String png = tabuleiro.getSlot(nrSquare - 1).getEvento().getImagem();
+        String png = tabuleiro.getSlot(nrSquare).getEvento().getImagem();
 
         if(png != null){
             return png;
@@ -513,8 +508,8 @@ public class GameManager {
             return null;
         }
 
-        // Obter o slot (position - 1 porque os slots começam em index 0)
-        Slot slot = tabuleiro.getSlot(position - 1);
+        // Obter o slot pela posição (1-indexed)
+        Slot slot = tabuleiro.getSlot(position);
         if (slot == null) {
             return null;
         }
@@ -664,27 +659,10 @@ public class GameManager {
         // ═════════════════════════════════════════════════════════════════
         String primeiraLinguagem = jogadorAtual.getPrimeiraLinguagem();
         
-        // DEBUG EXTENSIVO
-        System.out.println("========== DEBUG RESTRIÇÃO DE LINGUAGEM ==========");
-        System.out.println("Jogador ID: " + jogadorAtual.getId());
-        System.out.println("Jogador Nome: " + jogadorAtual.getNome());
-        System.out.println("getPrimeiraLinguagem() retornou: [" + primeiraLinguagem + "]");
-        System.out.println("primeiraLinguagem == null? " + (primeiraLinguagem == null));
-        if (primeiraLinguagem != null) {
-            System.out.println("primeiraLinguagem.length(): " + primeiraLinguagem.length());
-            System.out.println("primeiraLinguagem bytes: " + java.util.Arrays.toString(primeiraLinguagem.getBytes()));
-            System.out.println("primeiraLinguagem.equals(\"Assembly\"): " + primeiraLinguagem.equals("Assembly"));
-            System.out.println("primeiraLinguagem.equalsIgnoreCase(\"Assembly\"): " + primeiraLinguagem.equalsIgnoreCase("Assembly"));
-            System.out.println("primeiraLinguagem.equals(\"C\"): " + primeiraLinguagem.equals("C"));
-        }
-        System.out.println("nrSpaces: " + nrSpaces);
-        System.out.println("==================================================");
-        
         if (primeiraLinguagem != null) {
             // Programadores C só podem mover até 3 casas
             if (primeiraLinguagem.equalsIgnoreCase("C")) {
                 if (nrSpaces > 3) {
-                    System.out.println(">>> BLOQUEADO: C tentou mover " + nrSpaces + " casas (max 3)");
                     jogadorAtualIndex = getNextPlayer();
                     return false;
                 }
@@ -693,13 +671,11 @@ public class GameManager {
             // Programadores Assembly só podem mover até 2 casas
             if (primeiraLinguagem.equalsIgnoreCase("Assembly")) {
                 if (nrSpaces > 2) {
-                    System.out.println(">>> BLOQUEADO: Assembly tentou mover " + nrSpaces + " casas (max 2)");
                     jogadorAtualIndex = getNextPlayer();
                     return false;
                 }
             }
         }
-        System.out.println(">>> MOVIMENTO PERMITIDO: Retornando TRUE");
 
         
         // Guardar o valor do dado (necessário para o abismo "ErroDeLogica")
@@ -732,8 +708,6 @@ public class GameManager {
             // Ultrapassou! Calcular o "bounce"
             int excesso = posicaoDestino - boardSize;
             posicaoFinal = boardSize - excesso;
-            System.out.println();
-            System.out.println("Posicao de destino: " + (posicaoDestino - 1) + " Excesso: " + excesso + " Foi para: " + posicaoFinal);
         } else {
             // Movimento normal
             posicaoFinal = posicaoDestino;
@@ -743,8 +717,8 @@ public class GameManager {
         // EXECUTAR O MOVIMENTO
         // Remove o jogador da casa atual e coloca na nova
         // ═════════════════════════════════════════════════════════════════
-        Slot slotAtual = tabuleiro.getSlot(posicaoAtual - 1);     // -1 porque slots começam em 0
-        Slot slotDestino = tabuleiro.getSlot(posicaoFinal - 1);
+        Slot slotAtual = tabuleiro.getSlot(posicaoAtual);
+        Slot slotDestino = tabuleiro.getSlot(posicaoFinal);
         if(slotAtual != null && slotDestino != null){
             slotAtual.removePlayer(jogadorAtual);
             slotDestino.addPlayer(jogadorAtual);
@@ -862,9 +836,7 @@ public class GameManager {
             int posicao = tabuleiro.getPosOf(jogador);
             resultado.add(jogador.getNome() + " " + posicao);
         }
-
-        System.out.println(resultado);  // Debug
-
+        
         return resultado;
     }
 
@@ -987,26 +959,6 @@ public Jogador getJogador(int id) {
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
 
-        // Debug input info
-        {
-            System.out.println("\nPlayer input:");
-            for (String[] s : playerInfo) {
-                for (String ss : s) {
-                    System.out.printf(ss + " ");
-                }
-                System.out.println("");
-            }
-
-            System.out.println("\nEvent input (tipo, subtipo, posicao):");
-            if (abyssesAndTools != null) {
-                for (String[] s : abyssesAndTools) {
-                    for (String ss : s) {
-                        System.out.printf(ss + " ");
-                    }
-                    System.out.println("");
-                }
-            }
-        }
 
 
         // Cria o tabueliro normal inicial com a funçao original
@@ -1061,19 +1013,14 @@ public Jogador getJogador(int id) {
                     return false;
                 }
 
-                Slot slot = tabuleiro.getSlot(position - 1);
+                Slot slot = tabuleiro.getSlot(position);
                 if (slot.getEvento() != null) {
                     return false; // Já existe um evento neste slot
                 }
                 slot.setEvento(evento);
             }
         }
-        for(int i = 0; i < worldSize;i++){
-            if(tabuleiro.getSlot(i).getEvento() != null) {
-                System.out.println(tabuleiro.getSlot(i).getNrSlot());
-                System.out.println(tabuleiro.getSlot(i).getEvento());
-            }
-        }
+
         return true;
     }
 
@@ -1149,7 +1096,7 @@ public Jogador getJogador(int id) {
             return null;
         }
         
-        Slot slotAtual = tabuleiro.getSlot(posicaoJogador - 1);
+        Slot slotAtual = tabuleiro.getSlot(posicaoJogador);
         if (slotAtual == null) {
             return null;
         }
@@ -1238,7 +1185,7 @@ public Jogador getJogador(int id) {
                     // Todos os jogadores na casa recuam 3 casas
                     for (Jogador j : new ArrayList<>(jogadoresNaCasa)) {
                         int novaPosicao = Math.max(1, posicaoJogador - 3);
-                        Slot destino = tabuleiro.getSlot(novaPosicao - 1);
+                        Slot destino = tabuleiro.getSlot(novaPosicao);
                         if (destino != null) {
                             slotAtual.removePlayer(j);
                             destino.addPlayer(j);
@@ -1260,7 +1207,7 @@ public Jogador getJogador(int id) {
     
     // Helper: move jogador para uma posição específica
     private void moverJogadorParaPosicao(Jogador jogador, Slot slotAtual, int novaPosicao) {
-        Slot slotDestino = tabuleiro.getSlot(novaPosicao - 1);
+        Slot slotDestino = tabuleiro.getSlot(novaPosicao);
         if (slotDestino != null && slotAtual != slotDestino) {
             slotAtual.removePlayer(jogador);
             slotDestino.addPlayer(jogador);

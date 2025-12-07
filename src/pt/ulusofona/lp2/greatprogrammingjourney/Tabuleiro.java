@@ -20,11 +20,29 @@ public class Tabuleiro {
         }
     }
 
-    Slot getSlot(int index){
-        if(index < 0 || index > slots.size()) {
+    /**
+     * Retorna o Slot na posição especificada (1-indexed).
+     * Internamente converte para 0-indexed.
+     * @param position Posição no tabuleiro (1 a worldSize)
+     * @return O Slot nessa posição, ou null se fora dos limites
+     */
+    Slot getSlot(int position) {
+        if (position < 1 || position > slots.size()) {
             return null;
         }
-        return slots.get(index);
+        return slots.get(position - 1);
+    }
+
+    /**
+     * Define o Slot na posição especificada (1-indexed).
+     * Internamente converte para 0-indexed.
+     * @param position Posição no tabuleiro (1 a worldSize)
+     * @param slot O Slot a colocar nessa posição
+     */
+    void setSlot(int position, Slot slot) {
+        if (position >= 1 && position <= slots.size()) {
+            slots.set(position - 1, slot);
+        }
     }
 
     int getWorldSize(){
@@ -56,25 +74,23 @@ public class Tabuleiro {
         return -1;
     }
 
-    public Jogador getWinner(){
-
-        for(Jogador jogador : getListaJogadores()){
-            System.out.println(getPosOf(jogador));
-            if(getPosOf(jogador) == worldSize){
-                System.out.println("Vencedor: " + jogador);
+    public Jogador getWinner() {
+        for (Jogador jogador : getListaJogadores()) {
+            if (getPosOf(jogador) == worldSize) {
                 return jogador;
             }
         }
-
         return null;
     }
 
-    public boolean botarJogador(Jogador jogador, int posicao){
-        slots.get(posicao - 1).addPlayer(jogador);
-        // Adiciona à lista de ordem de criação
-        listaJogadoresOrdemCriacao.add(jogador);
-        System.out.println("DEBUG CRIACAO: Jogador #" + listaJogadoresOrdemCriacao.size() + " criado: " + jogador.getNome() + " (ID: " + jogador.getId() + ")");
-        return true;
+    public boolean botarJogador(Jogador jogador, int posicao) {
+        Slot slot = getSlot(posicao);
+        if (slot != null) {
+            slot.addPlayer(jogador);
+            listaJogadoresOrdemCriacao.add(jogador);
+            return true;
+        }
+        return false;
     }
 
 }
