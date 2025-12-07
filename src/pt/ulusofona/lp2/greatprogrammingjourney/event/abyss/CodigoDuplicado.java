@@ -8,6 +8,6 @@ public class CodigoDuplicado extends Abyss {
 
     @Override
     public String toString() {
-        return super.toString() + getId();
+        return super.toString();
     }
 }

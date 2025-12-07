@@ -21,6 +21,6 @@ public abstract class Tool extends Evento {
 
     @Override
     public String toString() {
-        return "F: ";
+        return "T:" + getId();
     }
 }

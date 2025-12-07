@@ -7,6 +7,6 @@ public class IDE extends Tool {
 
     @Override
     public String toString() {
-        return super.toString() + getId();
+        return super.toString();
     }
 }

@@ -8,6 +8,6 @@ public class FileNotFoundException extends Abyss {
 
     @Override
     public String toString() {
-        return super.toString() + getId();
+        return super.toString();
     }
 }

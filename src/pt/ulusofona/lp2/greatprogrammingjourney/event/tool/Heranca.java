@@ -8,6 +8,6 @@ public class Heranca extends Tool {
 
     @Override
     public String toString() {
-        return super.toString() + getId();
+        return super.toString();
     }
 }

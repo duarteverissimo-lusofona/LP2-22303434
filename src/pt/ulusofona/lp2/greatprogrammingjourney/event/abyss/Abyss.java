@@ -37,7 +37,7 @@ public abstract class Abyss extends Evento {
 
     @Override
     public String toString() {
-        return "A: ";
+        return "A:" + getId();
     }
 }
 

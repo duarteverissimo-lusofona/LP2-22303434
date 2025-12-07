@@ -228,7 +228,7 @@ public class GameManager {
         // Procurar o jogador pelo ID
         for (Jogador jogador : jogadores) {
             if (jogador.id == id) {
-                String[] info = new String[5];
+                String[] info = new String[7];
 
                 // [0] ID do programador
                 info[0] = String.valueOf(jogador.id);
@@ -265,6 +265,23 @@ public class GameManager {
                     }
                 }
                 info[4] = String.valueOf(posicao);
+
+                // [5] Ferramentas (separadas por ";") ou "No tools"
+                ArrayList<String> ferramentas = jogador.getFerramentas();
+                if (ferramentas == null || ferramentas.isEmpty()) {
+                    info[5] = "No tools";
+                } else {
+                    info[5] = String.join(";", ferramentas);
+                }
+
+                // [6] Estado (Em Jogo, Derrotado, Preso)
+                if (jogador.estado == Estado.EM_JOGO) {
+                    info[6] = "Em Jogo";
+                } else if (jogador.estado == Estado.DERROTADO) {
+                    info[6] = "Derrotado";
+                } else {
+                    info[6] = "Preso";
+                }
 
                 return info;
             }
@@ -455,6 +472,11 @@ public class GameManager {
         
         Jogador jogadorAtual = tabuleiro.getPlayer(jogadorAtualIndex);
         if (jogadorAtual == null) {
+            return false;
+        }
+        
+        // Se o jogador está PRESO (CicloInfinito), não pode mover
+        if (jogadorAtual.getEstado() == Estado.PRESO) {
             return false;
         }
         
@@ -836,10 +858,17 @@ public Jogador getJogador(int id) {
         
         // POLIMORFISMO: usa isTool() para distinguir sem instanceof
         if (evento.isTool()) {
-            // É uma ferramenta - jogador recolhe
-            jogador.addFerramenta(evento.getNome());
-            slotAtual.setEvento(null); // Remove a ferramenta do slot
-            return "Recolheu ferramenta: " + evento.getNome();
+            // É uma ferramenta - jogador recolhe (se ainda não tiver)
+            String nomeFerramenta = evento.getNome();
+            if (!jogador.getFerramentas().contains(nomeFerramenta)) {
+                // Jogador não tem esta ferramenta - adiciona
+                jogador.addFerramenta(nomeFerramenta);
+                // A ferramenta permanece no slot para outros jogadores
+                return "Recolheu ferramenta: " + nomeFerramenta;
+            } else {
+                // Jogador já tem esta ferramenta - não acontece nada
+                return null;
+            }
         } else {
             // É um Abyss - fazer cast seguro para Abyss (sabemos que não é Tool)
             Abyss abyss = (Abyss) evento;
@@ -913,8 +942,8 @@ public Jogador getJogador(int id) {
                     }
                     return "Caiu num " + abyss.getNome().toLowerCase() + "! Todos recuam 3 casas";
                 }
-                // Se só há 1 jogador, não acontece nada
-                return null;
+                // Se só há 1 jogador, não acontece nada mas retorna mensagem
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Nada acontece";
                 
             } else {
                 // Recuar X casas (mínimo posição 1)
