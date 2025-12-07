@@ -233,5 +233,143 @@ class TestGameManager {
         assertEquals(2, gm.getCurrentPlayerID(), "Turno deveria ter passado para jogador 2");
     }
 
+    // ========== TESTES ASSEMBLY - TODAS AS VARIAÇÕES (1-6 casas) ==========
+
+    @Test
+    void testAssemblyPlayer_cannotMove4Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertFalse(gm.moveCurrentPlayer(4), 
+                "Programador Assembly NÃO deveria conseguir mover 4 casas");
+    }
+
+    @Test
+    void testAssemblyPlayer_cannotMove5Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertFalse(gm.moveCurrentPlayer(5), 
+                "Programador Assembly NÃO deveria conseguir mover 5 casas");
+    }
+
+    @Test
+    void testAssemblyPlayer_cannotMove6Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertFalse(gm.moveCurrentPlayer(6), 
+                "Programador Assembly NÃO deveria conseguir mover 6 casas");
+    }
+
+    // ========== TESTES C - TODAS AS VARIAÇÕES (1-6 casas) ==========
+
+    @Test
+    void testCPlayer_canMove1Space() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertTrue(gm.moveCurrentPlayer(1), 
+                "Programador C DEVERIA conseguir mover 1 casa");
+    }
+
+    @Test
+    void testCPlayer_canMove2Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertTrue(gm.moveCurrentPlayer(2), 
+                "Programador C DEVERIA conseguir mover 2 casas");
+    }
+
+    @Test
+    void testCPlayer_cannotMove5Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertFalse(gm.moveCurrentPlayer(5), 
+                "Programador C NÃO deveria conseguir mover 5 casas");
+    }
+
+    @Test
+    void testCPlayer_cannotMove6Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertFalse(gm.moveCurrentPlayer(6), 
+                "Programador C NÃO deveria conseguir mover 6 casas");
+    }
+
+    @Test
+    void testCPlayer_turnAdvancesOnInvalidMove() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Java Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        assertEquals(1, gm.getCurrentPlayerID());
+        
+        // C tenta mover 4 (inválido) - deve retornar false mas turno avança
+        boolean result = gm.moveCurrentPlayer(4);
+        assertFalse(result, "Movimento C 4 casas deve retornar false");
+        assertEquals(2, gm.getCurrentPlayerID(), "Turno deveria ter passado para jogador 2");
+    }
+
+    // ========== TESTE JOGADOR ASSEMBLY ESPECIFICAMENTE COM 5 CASAS ==========
+    
+    @Test
+    void testAssemblyPlayer_move5Spaces_playerStaysInSamePosition() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        // Verifica posição inicial
+        String[] infoBefore = gm.getProgrammerInfo(1);
+        assertEquals("1", infoBefore[4], "Jogador deve começar na posição 1");
+        
+        // Assembly tenta mover 5 casas (inválido)
+        boolean result = gm.moveCurrentPlayer(5);
+        
+        // Verifica que retorna false
+        assertFalse(result, "Programador Assembly NÃO deveria conseguir mover 5 casas");
+        
+        // Verifica que jogador continua na mesma posição
+        String[] infoAfter = gm.getProgrammerInfo(1);
+        assertEquals("1", infoAfter[4], "Jogador Assembly deve continuar na posição 1 após movimento inválido");
+    }
+
 
 }

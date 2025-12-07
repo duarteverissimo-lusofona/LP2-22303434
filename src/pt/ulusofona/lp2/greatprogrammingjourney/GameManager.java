@@ -480,11 +480,11 @@ public class GameManager {
             return false;
         }
         
-        // Se o jogador está PRESO (CicloInfinito) ou DERROTADO, não pode mover mas turno avança
+        // Se o jogador está PRESO (CicloInfinito) ou DERROTADO, não pode mover e turno NÃO avança
         if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
-            numTurnos++;
+            // NÃO incrementa numTurnos - apenas passa para o próximo jogador
             jogadorAtualIndex = getNextPlayer();
-            return false; // Movimento não aconteceu, mas turno passou
+            return false; // Movimento não aconteceu
         }
         
         // Restrições de movimento baseadas na primeira linguagem
@@ -503,9 +503,9 @@ public class GameManager {
         }
         
         if (movimentoRestrigido) {
-            // Jogador fica na mesma posição, mas o turno passa para o próximo
+            // Jogador fica na mesma posição - movimento inválido NÃO incrementa turno
             System.out.println("DEBUG: Movimento restringido! Retornando FALSE");
-            numTurnos++;
+            // NÃO incrementa numTurnos - apenas passa para o próximo jogador
             jogadorAtualIndex = getNextPlayer();
             return false; // Retorna false porque movimento não aconteceu
         }
@@ -597,10 +597,15 @@ public class GameManager {
         String nomeVencedor = tabuleiro.getWinner().getNome();
 
         jogadores.sort((a,b) -> {
-
             int jogadorA = tabuleiro.getPosOf(a);
             int jogadorB = tabuleiro.getPosOf(b);
-            return Integer.compare(jogadorB,jogadorA);
+            // Primeiro ordena por posição (mais perto da meta primeiro = maior posição)
+            int comparacaoPosicao = Integer.compare(jogadorB, jogadorA);
+            if (comparacaoPosicao != 0) {
+                return comparacaoPosicao;
+            }
+            // Em caso de empate, ordena alfabeticamente
+            return a.getNome().compareTo(b.getNome());
         });
 
         ArrayList<String> resultado = new ArrayList<>();
@@ -817,6 +822,7 @@ public Jogador getJogador(int id) {
                 jogadoresVivos.add(jogador);
             }
         }
+        
         
         for (int i = 0; i < jogadoresVivos.size(); i++) {
             Jogador jogador = jogadoresVivos.get(i);

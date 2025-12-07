@@ -7,10 +7,13 @@ public class Tabuleiro {
 
     List<Slot> slots ;
     int worldSize;
+    // Lista para manter ordem de criação dos jogadores
+    private List<Jogador> listaJogadoresOrdemCriacao;
 
     public Tabuleiro(int worldSize) {
         this.worldSize = worldSize;
         this.slots = new ArrayList<>();
+        this.listaJogadoresOrdemCriacao = new ArrayList<>();
 
         for(int i = 0; i < worldSize; i++){
             slots.add(new Slot(i + 1));
@@ -29,18 +32,8 @@ public class Tabuleiro {
     }
 
     public List<Jogador> getListaJogadores(){
-
-        List<Jogador> listJogadores = new ArrayList<>();
-
-        if(slots.isEmpty()){
-            return null;
-        }
-
-        for(Slot slot : slots){
-            listJogadores.addAll(slot.getJogadores());
-        }
-
-        return  listJogadores;
+        // Retorna jogadores na ordem de criação
+        return listaJogadoresOrdemCriacao;
     }
 
     public Jogador getPlayer(int id){
@@ -78,6 +71,9 @@ public class Tabuleiro {
 
     public boolean botarJogador(Jogador jogador, int posicao){
         slots.get(posicao - 1).addPlayer(jogador);
+        // Adiciona à lista de ordem de criação
+        listaJogadoresOrdemCriacao.add(jogador);
+        System.out.println("DEBUG CRIACAO: Jogador #" + listaJogadoresOrdemCriacao.size() + " criado: " + jogador.getNome() + " (ID: " + jogador.getId() + ")");
         return true;
     }
 
