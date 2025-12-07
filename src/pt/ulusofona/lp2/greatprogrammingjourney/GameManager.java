@@ -500,7 +500,7 @@ public class GameManager {
             // Jogador fica na mesma posição, mas o turno passa para o próximo
             numTurnos++;
             jogadorAtualIndex = getNextPlayer();
-            return true; // Retorna true porque o turno avançou
+            return false; // Retorna false porque movimento não aconteceu
         }
         
         // Guardar último dado para ErroDeLogica

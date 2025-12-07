@@ -128,19 +128,109 @@ class TestGameManager {
         assertEquals(expected, gm.getProgrammersInfo());
     }
 
+
+
+    // ========== TESTES DE RESTRIÇÕES DE MOVIMENTO POR LINGUAGEM ==========
+
     @Test
-    void testCreateInitialBoardWithAbyssesAndTools() {
+    void testAssemblyPlayer_cannotMove3Spaces() {
         GameManager gm = new GameManager();
         String[][] players = new String[][]{
-                {"1", "Player One", "Java", "PURPLE"},
-                {"2", "Player Two", "Python", "BLUE"}
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
         };
-        String[][] abyssesAndTools = new String[][]{
-                {"abismo", "Erro de sintaxe", "3"},
-                {"ferramenta", "IDE", "4"}
-        };
+        gm.createInitialBoard(players, 10);
 
-        assertTrue(gm.createInitialBoard(players, 10, abyssesAndTools));
+        // Assembly só pode mover até 2 casas, 3 deve retornar false
+        assertFalse(gm.moveCurrentPlayer(3), 
+                "Programador Assembly NÃO deveria conseguir mover 3 casas");
+    }
+
+    @Test
+    void testAssemblyPlayer_canMove2Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // Assembly pode mover até 2 casas
+        assertTrue(gm.moveCurrentPlayer(2), 
+                "Programador Assembly DEVERIA conseguir mover 2 casas");
+    }
+
+    @Test
+    void testAssemblyPlayer_canMove1Space() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // Assembly pode mover 1 casa
+        assertTrue(gm.moveCurrentPlayer(1), 
+                "Programador Assembly DEVERIA conseguir mover 1 casa");
+    }
+
+    @Test
+    void testCPlayer_cannotMove4Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // C só pode mover até 3 casas, 4 deve retornar false
+        assertFalse(gm.moveCurrentPlayer(4), 
+                "Programador C NÃO deveria conseguir mover 4 casas");
+    }
+
+    @Test
+    void testCPlayer_canMove3Spaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Other Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        // C pode mover até 3 casas
+        assertTrue(gm.moveCurrentPlayer(3), 
+                "Programador C DEVERIA conseguir mover 3 casas");
+    }
+
+    @Test
+    void testJavaPlayer_canMoveAnyValidSpaces() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Java Dev", "Java", "PURPLE"},
+                {"2", "Other Dev", "Python", "BLUE"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        // Java não tem restrições (pode mover 1-6)
+        assertTrue(gm.moveCurrentPlayer(6), 
+                "Programador Java DEVERIA conseguir mover 6 casas");
+    }
+
+    @Test
+    void testAssemblyPlayer_turnAdvancesOnInvalidMove() {
+        GameManager gm = new GameManager();
+        String[][] players = new String[][]{
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Java Dev", "Java", "BLUE"}
+        };
+        gm.createInitialBoard(players, 10);
+
+        assertEquals(1, gm.getCurrentPlayerID());
+        
+        // Assembly tenta mover 3 (inválido) - deve retornar false mas turno avança
+        boolean result = gm.moveCurrentPlayer(3);
+        assertFalse(result, "Movimento Assembly 3 casas deve retornar false");
+        assertEquals(2, gm.getCurrentPlayerID(), "Turno deveria ter passado para jogador 2");
     }
 
 
