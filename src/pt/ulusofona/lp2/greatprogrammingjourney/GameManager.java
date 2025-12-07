@@ -475,9 +475,11 @@ public class GameManager {
             return false;
         }
         
-        // Se o jogador está PRESO (CicloInfinito), não pode mover
-        if (jogadorAtual.getEstado() == Estado.PRESO) {
-            return false;
+        // Se o jogador está PRESO (CicloInfinito) ou DERROTADO, não pode mover mas turno avança
+        if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
+            numTurnos++;
+            jogadorAtualIndex = getNextPlayer();
+            return false; // Movimento não aconteceu, mas turno passou
         }
         
         // Restrições de movimento baseadas na primeira linguagem
@@ -714,11 +716,13 @@ public Jogador getJogador(int id) {
             }
 
             System.out.println("\nEvent input (tipo, subtipo, posicao):");
-            for (String[] s : abyssesAndTools) {
-                for (String ss : s) {
-                    System.out.printf(ss + " ");
+            if (abyssesAndTools != null) {
+                for (String[] s : abyssesAndTools) {
+                    for (String ss : s) {
+                        System.out.printf(ss + " ");
+                    }
+                    System.out.println("");
                 }
-                System.out.println("");
             }
         }
 
@@ -891,7 +895,8 @@ public Jogador getJogador(int id) {
             int casasRecuo = abyss.getCasasRecuo();
             
             if (casasRecuo == -1) {
-                // BlueScreenOfDeath: derrota o jogador
+                // BlueScreenOfDeath: derrota o jogador e move para casa 1
+                //moverJogadorParaPosicao(jogador, slotAtual, 1);
                 jogador.setEstado(Estado.DERROTADO);
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador derrotado";
                 
