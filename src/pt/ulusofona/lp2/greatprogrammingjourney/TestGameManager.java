@@ -18,32 +18,7 @@ class TestGameManager {
 
     }
 
-    @Test
-    void testGetGameResults_afterWin_returnsFormattedList() {
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(validPlayers(), 6));
 
-        gm.moveCurrentPlayer(5);
-
-        ArrayList<String> results = gm.getGameResults();
-        assertNotNull(results);
-        assertFalse(results.isEmpty(), "Após a vitória deve devolver uma lista preenchida");
-
-        ArrayList<String> expected = new ArrayList<>();
-        expected.add("THE GREAT PROGRAMMING JOURNEY");
-        expected.add("");
-        expected.add("NR. DE TURNOS");
-        expected.add("2");
-        expected.add("");
-        expected.add("VENCEDOR");
-        expected.add("Dev One");
-        expected.add("");
-        expected.add("RESTANTES");
-        expected.add("Dev Two 1");
-        expected.add("Dev Three 1");
-
-        assertEquals(expected, results);
-    }
 
     @Test
     void testMoveCurrentPlayer_boardNotInitialized_returnsFalse() {

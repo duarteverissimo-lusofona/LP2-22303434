@@ -489,25 +489,27 @@ public class GameManager {
         
         // Restrições de movimento baseadas na primeira linguagem
         ArrayList<String> linguagens = jogadorAtual.getLinguagens();
-        boolean movimentoRestrigido = false;
         if (linguagens != null && !linguagens.isEmpty()) {
-            String primeiraLinguagem = linguagens.get(0);
-            System.out.println("DEBUG: Jogador " + jogadorAtual.getNome() + " tem primeira linguagem: '" + primeiraLinguagem + "', tentando mover " + nrSpaces + " casas");
-            if (primeiraLinguagem.equalsIgnoreCase("C") && nrSpaces > 3) {
-                // C: máximo 3 casas - jogador fica na mesma posição mas turno avança
-                movimentoRestrigido = true;
-            } else if (primeiraLinguagem.equalsIgnoreCase("Assembly") && nrSpaces > 2) {
-                // Assembly: máximo 2 casas - jogador fica na mesma posição mas turno avança
-                movimentoRestrigido = true;
+            String primeiraLinguagem = linguagens.get(0).trim();
+            System.out.println("DEBUG LANG: [" + primeiraLinguagem + "] nrSpaces=" + nrSpaces);
+            
+            // C: máximo 3 casas
+            if (primeiraLinguagem.equalsIgnoreCase("C")) {
+                if (nrSpaces > 3) {
+                    System.out.println("DEBUG: C bloqueado (max 3), tentou " + nrSpaces);
+                    jogadorAtualIndex = getNextPlayer();
+                    return false;
+                }
             }
-        }
-        
-        if (movimentoRestrigido) {
-            // Jogador fica na mesma posição - movimento inválido NÃO incrementa turno
-            System.out.println("DEBUG: Movimento restringido! Retornando FALSE");
-            // NÃO incrementa numTurnos - apenas passa para o próximo jogador
-            jogadorAtualIndex = getNextPlayer();
-            return false; // Retorna false porque movimento não aconteceu
+            
+            // Assembly: máximo 2 casas
+            if (primeiraLinguagem.equalsIgnoreCase("Assembly")) {
+                if (nrSpaces > 2) {
+                    System.out.println("DEBUG: Assembly bloqueado (max 2), tentou " + nrSpaces);
+                    jogadorAtualIndex = getNextPlayer();
+                    return false;
+                }
+            }
         }
         System.out.println("DEBUG: Movimento permitido. Retornando TRUE");
         
@@ -818,7 +820,8 @@ public Jogador getJogador(int id) {
         List<Jogador> jogadoresVivos = new ArrayList<>();
 
         for (Jogador jogador : jogadores) {
-            if (jogador.getEstado() == Estado.EM_JOGO) {
+            // Jogadores vivos incluem EM_JOGO e PRESO (só DERROTADOS são excluídos)
+            if (jogador.getEstado() != Estado.DERROTADO) {
                 jogadoresVivos.add(jogador);
             }
         }
@@ -884,8 +887,8 @@ public Jogador getJogador(int id) {
                 // A ferramenta permanece no slot para outros jogadores
                 return "Recolheu ferramenta: " + nomeFerramenta;
             } else {
-                // Jogador já tem esta ferramenta - não acontece nada
-                return null;
+                // Jogador já tem esta ferramenta - retorna mensagem
+                return "Já possui ferramenta: " + nomeFerramenta;
             }
         } else {
             // É um Abyss - fazer cast seguro para Abyss (sabemos que não é Tool)
