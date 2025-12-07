@@ -1,7 +1,6 @@
 package pt.ulusofona.lp2.greatprogrammingjourney;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Jogador {
 
@@ -11,6 +10,7 @@ public class Jogador {
     ArrayList<String> linguagensProgramacao;
     Estado estado;
     ArrayList<String> ferramentas;
+    String primeiraLinguagem;  // Guarda a primeira linguagem para verificar restrições de movimento
 
 
     public Jogador(int id, String nome, Cor cor, ArrayList<String> linguagensProgramacao, int posicao) {
@@ -20,7 +20,15 @@ public class Jogador {
         this.linguagensProgramacao = linguagensProgramacao;
         this.estado = Estado.EM_JOGO;
         this.ferramentas = new ArrayList<>();
+        
+        // Guardar a primeira linguagem (para restrições de movimento)
+        if (linguagensProgramacao != null && !linguagensProgramacao.isEmpty()) {
+            this.primeiraLinguagem = linguagensProgramacao.get(0).trim();
+        } else {
+            this.primeiraLinguagem = null;
+        }
     }
+
 
 
     public int getId() {
@@ -38,8 +46,13 @@ public class Jogador {
     public ArrayList<String> getLinguagens() {
         return linguagensProgramacao;
     }
+    
+    public String getPrimeiraLinguagem() {
+        return primeiraLinguagem;
+    }
 
     public ArrayList<String> getFerramentas() {
+
         return ferramentas;
     }
 

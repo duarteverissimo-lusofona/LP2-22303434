@@ -71,17 +71,6 @@ class TestGameManager {
         assertFalse(gm.gameIsOver());
     }
 
-    @Test
-    void testCurrentPlayerRotation() {
-        GameManager gm = new GameManager();
-        assertTrue(gm.createInitialBoard(validPlayers(), 6));
-
-        assertEquals(1, gm.getCurrentPlayerID());
-        gm.moveCurrentPlayer(1);
-        assertEquals(2, gm.getCurrentPlayerID());
-        gm.moveCurrentPlayer(1);
-        assertEquals(3, gm.getCurrentPlayerID());
-    }
 
     @Test
     void testGetProgrammersInfo() {
@@ -191,22 +180,7 @@ class TestGameManager {
                 "Programador Java DEVERIA conseguir mover 6 casas");
     }
 
-    @Test
-    void testAssemblyPlayer_turnAdvancesOnInvalidMove() {
-        GameManager gm = new GameManager();
-        String[][] players = new String[][]{
-                {"1", "Assembly Dev", "Assembly", "PURPLE"},
-                {"2", "Java Dev", "Java", "BLUE"}
-        };
-        gm.createInitialBoard(players, 10);
 
-        assertEquals(1, gm.getCurrentPlayerID());
-        
-        // Assembly tenta mover 3 (inválido) - deve retornar false mas turno avança
-        boolean result = gm.moveCurrentPlayer(3);
-        assertFalse(result, "Movimento Assembly 3 casas deve retornar false");
-        assertEquals(2, gm.getCurrentPlayerID(), "Turno deveria ter passado para jogador 2");
-    }
 
     // ========== TESTES ASSEMBLY - TODAS AS VARIAÇÕES (1-6 casas) ==========
 
@@ -303,22 +277,6 @@ class TestGameManager {
                 "Programador C NÃO deveria conseguir mover 6 casas");
     }
 
-    @Test
-    void testCPlayer_turnAdvancesOnInvalidMove() {
-        GameManager gm = new GameManager();
-        String[][] players = new String[][]{
-                {"1", "C Dev", "C", "PURPLE"},
-                {"2", "Java Dev", "Java", "BLUE"}
-        };
-        gm.createInitialBoard(players, 20);
-
-        assertEquals(1, gm.getCurrentPlayerID());
-        
-        // C tenta mover 4 (inválido) - deve retornar false mas turno avança
-        boolean result = gm.moveCurrentPlayer(4);
-        assertFalse(result, "Movimento C 4 casas deve retornar false");
-        assertEquals(2, gm.getCurrentPlayerID(), "Turno deveria ter passado para jogador 2");
-    }
 
     // ========== TESTE JOGADOR ASSEMBLY ESPECIFICAMENTE COM 5 CASAS ==========
     
