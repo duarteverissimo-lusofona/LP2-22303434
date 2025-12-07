@@ -171,6 +171,11 @@ public class GameManager {
 
         jogadorAtualIndex = menorId;
         numTurnos = 1;
+        
+        // Reset do estado de tracking para novo jogo
+        ultimoDado = 0;
+        posicaoAnterior.clear();
+        posicaoHaDoisTurnos.clear();
         System.out.println(worldSize);
 
         for(Jogador jogador : tabuleiro.getListaJogadores()){
@@ -487,6 +492,7 @@ public class GameManager {
         boolean movimentoRestrigido = false;
         if (linguagens != null && !linguagens.isEmpty()) {
             String primeiraLinguagem = linguagens.get(0);
+            System.out.println("DEBUG: Jogador " + jogadorAtual.getNome() + " tem primeira linguagem: '" + primeiraLinguagem + "', tentando mover " + nrSpaces + " casas");
             if (primeiraLinguagem.equalsIgnoreCase("C") && nrSpaces > 3) {
                 // C: máximo 3 casas - jogador fica na mesma posição mas turno avança
                 movimentoRestrigido = true;
@@ -498,10 +504,12 @@ public class GameManager {
         
         if (movimentoRestrigido) {
             // Jogador fica na mesma posição, mas o turno passa para o próximo
+            System.out.println("DEBUG: Movimento restringido! Retornando FALSE");
             numTurnos++;
             jogadorAtualIndex = getNextPlayer();
             return false; // Retorna false porque movimento não aconteceu
         }
+        System.out.println("DEBUG: Movimento permitido. Retornando TRUE");
         
         // Guardar último dado para ErroDeLogica
         ultimoDado = nrSpaces;
