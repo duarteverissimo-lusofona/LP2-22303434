@@ -32,7 +32,8 @@ enum Cor {
 
 enum Estado {
     EM_JOGO,
-    DERROTADO
+    DERROTADO,
+    PRESO
 }
 
 
@@ -42,8 +43,15 @@ public class GameManager {
     //private ArrayList<Jogador> jogadores;
     private int jogadorAtualIndex;
     private int numTurnos;
+    
+    // Tracking para efeitos de abismos
+    private int ultimoDado; // Para ErroDeLogica (recua metade do dado)
+    private HashMap<Integer, Integer> posicaoAnterior; // Para CodigoDuplicado (ID jogador -> posição anterior)
+    private HashMap<Integer, Integer> posicaoHaDoisTurnos; // Para EfeitosSecundarios (ID jogador -> posição de 2 turnos atrás)
 
     public GameManager() {
+        this.posicaoAnterior = new HashMap<>();
+        this.posicaoHaDoisTurnos = new HashMap<>();
     }
 
 
@@ -326,7 +334,14 @@ public class GameManager {
                 }
 
                 // Obter o estado
-                String estado = jogador.estado == Estado.EM_JOGO ? "Em Jogo" : "Derrotado";
+                String estado;
+                if (jogador.estado == Estado.EM_JOGO) {
+                    estado = "Em Jogo";
+                } else if (jogador.estado == Estado.DERROTADO) {
+                    estado = "Derrotado";
+                } else {
+                    estado = "Preso";
+                }
 
 
                 // Formato: <ID> | <Nome> | <Pos> | <Ferramentas> | <Linguagens favoritas> | <Estado>
@@ -430,37 +445,62 @@ public class GameManager {
         if(tabuleiro == null){
             return false;
         }
-        List<Jogador> jogadores = tabuleiro.getListaJogadores();
 
-        //A função moveCurrentPlayer(int nrSpaces) move o jogador actual e avança o turno.
-        //
         //Parâmetros: nrSpaces (número de casas a avançar, 1 a 6).
         //Validações:
         //Se nrSpaces < 1 ou > 6 → retorna false (turno não muda).
         if(nrSpaces < 1 || nrSpaces > 6){
             return false;
         }
-        //Processo:
-        //Calcula posição destino (posição_actual + nrSpaces).
+        
         Jogador jogadorAtual = tabuleiro.getPlayer(jogadorAtualIndex);
-        int posicaoAtual = 0;
-        for(Slot slot : tabuleiro.slots){
-            if(slot.jogadores != null && slot.jogadores.contains(jogadorAtual)){
-                posicaoAtual = slot.nrSlot;
-                break;
+        if (jogadorAtual == null) {
+            return false;
+        }
+        
+        // Restrições de movimento baseadas na primeira linguagem
+        ArrayList<String> linguagens = jogadorAtual.getLinguagens();
+        boolean movimentoRestrigido = false;
+        if (linguagens != null && !linguagens.isEmpty()) {
+            String primeiraLinguagem = linguagens.get(0);
+            if (primeiraLinguagem.equalsIgnoreCase("C") && nrSpaces > 3) {
+                // C: máximo 3 casas - jogador fica na mesma posição mas turno avança
+                movimentoRestrigido = true;
+            } else if (primeiraLinguagem.equalsIgnoreCase("Assembly") && nrSpaces > 2) {
+                // Assembly: máximo 2 casas - jogador fica na mesma posição mas turno avança
+                movimentoRestrigido = true;
             }
         }
+        
+        if (movimentoRestrigido) {
+            // Jogador fica na mesma posição, mas o turno passa para o próximo
+            numTurnos++;
+            jogadorAtualIndex = getNextPlayer();
+            return true; // Retorna true porque o turno avançou
+        }
+        
+        // Guardar último dado para ErroDeLogica
+        ultimoDado = nrSpaces;
+        
+        // Obter posição atual
+        int posicaoAtual = tabuleiro.getPosOf(jogadorAtual);
+
+        // Guardar histórico de posições ANTES de mover
+        // Atualizar posição de 2 turnos atrás com a posição anterior guardada
+        Integer posAnterior = posicaoAnterior.get(jogadorAtual.getId());
+        if (posAnterior != null) {
+            posicaoHaDoisTurnos.put(jogadorAtual.getId(), posAnterior);
+        }
+        // Guardar posição atual como anterior
+        posicaoAnterior.put(jogadorAtual.getId(), posicaoAtual);
 
         //Se ultrapassar o tabuleiro, recua para a posição válida.
         int posicaoDestino = posicaoAtual + nrSpaces;
         int boardSize = tabuleiro.getWorldSize();
         int posicaoFinal = 0;
 
-
         if(posicaoDestino >= boardSize){
-
             int excesso = posicaoDestino - boardSize;
-
             posicaoFinal = boardSize - excesso;
             System.out.println();
             System.out.println("Posicao de destino: " + (posicaoDestino - 1) + " Excesso: " + excesso + " Foi para: " + posicaoFinal);
@@ -479,9 +519,6 @@ public class GameManager {
 
         //Passa o turno para o próximo jogador (ordem circular).
         jogadorAtualIndex = getNextPlayer();
-        //Retorno: true se a movimentação for válida.
-        //A função não modifica dados externos, apenas atualiza o estado interno.
-        //System.out.println(tabuleiro.getListaJogadores().toString());
         return true;
 
     }
@@ -812,12 +849,97 @@ public Jogador getJogador(int id) {
             if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
                 // Jogador tem a ferramenta - anula o abismo
                 jogador.getFerramentas().remove(ferramentaAnuladora);
+                
+                // CicloInfinito: mesmo anulado, liberta outros jogadores na mesma casa
+                if (abyss.getCasasRecuo() == -2) {
+                    libertarJogadoresNaCasa(slotAtual, jogador);
+                }
+                
                 return abyss.getNome() + " anulado por " + ferramentaAnuladora;
             }
             
-            // Se não tiver ferramenta ou abismo não tem anulador, aplica efeito do abismo
-            // TODO: Adicionar lógica de recuo real
-            return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua 1 casa";
+            // Aplicar efeito do abismo
+            int casasRecuo = abyss.getCasasRecuo();
+            
+            if (casasRecuo == -1) {
+                // BlueScreenOfDeath: derrota o jogador
+                jogador.setEstado(Estado.DERROTADO);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador derrotado";
+                
+            } else if (casasRecuo == -2) {
+                // CicloInfinito: prende o jogador e liberta outros na mesma casa
+                jogador.setEstado(Estado.PRESO);
+                libertarJogadoresNaCasa(slotAtual, jogador);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso";
+                
+            } else if (casasRecuo == -3) {
+                // Crash: volta para casa 1
+                moverJogadorParaPosicao(jogador, slotAtual, 1);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para casa 1";
+                
+            } else if (casasRecuo == -4) {
+                // ErroDeLogica: recua metade do último dado (arredondado para baixo)
+                int recuo = ultimoDado / 2;
+                int novaPosicao = Math.max(1, posicaoJogador - recuo);
+                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + recuo + " casa" + (recuo > 1 ? "s" : "");
+                
+            } else if (casasRecuo == -5) {
+                // CodigoDuplicado: volta para posição anterior (anula o movimento)
+                Integer posAnterior = posicaoAnterior.get(jogador.getId());
+                int novaPosicao = (posAnterior != null) ? posAnterior : posicaoJogador;
+                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição anterior";
+                
+            } else if (casasRecuo == -6) {
+                // EfeitosSecundarios: volta para posição de 2 turnos atrás
+                Integer pos2Turnos = posicaoHaDoisTurnos.get(jogador.getId());
+                int novaPosicao = (pos2Turnos != null) ? pos2Turnos : posicaoJogador;
+                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição de 2 turnos atrás";
+                
+            } else if (casasRecuo == -7) {
+                // SegmentationFault: só ativa se 2+ jogadores na mesma casa
+                List<Jogador> jogadoresNaCasa = slotAtual.getJogadores();
+                if (jogadoresNaCasa.size() >= 2) {
+                    // Todos os jogadores na casa recuam 3 casas
+                    for (Jogador j : new ArrayList<>(jogadoresNaCasa)) {
+                        int novaPosicao = Math.max(1, posicaoJogador - 3);
+                        Slot destino = tabuleiro.getSlot(novaPosicao - 1);
+                        if (destino != null) {
+                            slotAtual.removePlayer(j);
+                            destino.addPlayer(j);
+                        }
+                    }
+                    return "Caiu num " + abyss.getNome().toLowerCase() + "! Todos recuam 3 casas";
+                }
+                // Se só há 1 jogador, não acontece nada
+                return null;
+                
+            } else {
+                // Recuar X casas (mínimo posição 1)
+                int novaPosicao = Math.max(1, posicaoJogador - casasRecuo);
+                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + casasRecuo + " casa" + (casasRecuo > 1 ? "s" : "");
+            }
+        }
+    }
+    
+    // Helper: move jogador para uma posição específica
+    private void moverJogadorParaPosicao(Jogador jogador, Slot slotAtual, int novaPosicao) {
+        Slot slotDestino = tabuleiro.getSlot(novaPosicao - 1);
+        if (slotDestino != null && slotAtual != slotDestino) {
+            slotAtual.removePlayer(jogador);
+            slotDestino.addPlayer(jogador);
+        }
+    }
+    
+    // Helper: liberta jogadores presos na mesma casa (exceto o jogador atual)
+    private void libertarJogadoresNaCasa(Slot slot, Jogador jogadorAtual) {
+        for (Jogador j : slot.getJogadores()) {
+            if (j != jogadorAtual && j.getEstado() == Estado.PRESO) {
+                j.setEstado(Estado.EM_JOGO);
+            }
         }
     }
 
