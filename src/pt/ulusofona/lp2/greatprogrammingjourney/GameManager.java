@@ -290,8 +290,8 @@ public class GameManager {
         // Definir quem começa: o jogador com menor ID
         jogadorAtualIndex = menorId;
         
-        // O jogo começa no turno 0 (primeiro movimento incrementa para 1)
-        numTurnos = 0;
+        // O jogo começa no turno 1
+        numTurnos = 1;
         
         // Limpar dados de jogos anteriores (reset completo)
         ultimoDado = 0;
@@ -558,6 +558,11 @@ public class GameManager {
         int menorID = Integer.MAX_VALUE;
 
         for(Jogador j : jogadores){
+            // Ignorar jogadores derrotados (não participam na rotação)
+            if (j.getEstado() == Estado.DERROTADO) {
+                continue;
+            }
+            
             int id = j.getId();
 
             // Procurar o menor ID que seja maior que o atual
@@ -592,6 +597,11 @@ public class GameManager {
         int maiorID = Integer.MIN_VALUE;
 
         for(Jogador j : jogadores){
+            // Ignorar jogadores derrotados (não participam na rotação)
+            if (j.getEstado() == Estado.DERROTADO) {
+                continue;
+            }
+            
             int id = j.getId();
 
             // Procurar o maior ID que seja menor que o atual
@@ -714,7 +724,7 @@ public class GameManager {
         int boardSize = tabuleiro.getWorldSize();
         int posicaoFinal = 0;
 
-        if(posicaoDestino > boardSize){
+        if(posicaoDestino >= boardSize){
             // Ultrapassou! Calcular o "bounce"
             int excesso = posicaoDestino - boardSize;
             posicaoFinal = boardSize - excesso;
