@@ -298,6 +298,13 @@ public class GameManager {
         posicaoAnterior.clear();
         posicaoHaDoisTurnos.clear();
         
+        // DEBUG: Mostrar jogadores criados
+        System.out.println("[DEBUG INIT] === JOGADORES CRIADOS ===");
+        for (Jogador j : tabuleiro.getListaJogadores()) {
+            System.out.println("[DEBUG INIT] ID: " + j.getId() + ", Nome: " + j.getNome() + ", Linguagens: " + j.getLinguagens());
+        }
+        System.out.println("[DEBUG INIT] jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
+        System.out.println("[DEBUG INIT] ========================");
 
         
         return true;  // Tabuleiro criado com sucesso!
@@ -656,7 +663,7 @@ public class GameManager {
         
         // REGRA: Jogadores PRESOS ou DERROTADOS não podem jogar
         // O turno passa e conta como uma jogada
-        if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
+        if (jogadorAtual.getEstado() == Estado.DERROTADO) {
             numTurnos++;  // Conta como um turno
             jogadorAtualIndex = getNextPlayer();  // Passa para o próximo
             return false;
@@ -687,13 +694,19 @@ public class GameManager {
             
             // Programadores C só podem mover até 3 casas
             if (temC && nrSpaces > 3) {
+                System.out.println("[DEBUG C] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 jogadorAtualIndex = getNextPlayer();
+                numTurnos++;
+                System.out.println("[DEBUG C] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 return false;
             }
             
             // Programadores Assembly só podem mover até 2 casas
             if (temAssembly && nrSpaces > 2) {
+                System.out.println("[DEBUG Assembly] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 jogadorAtualIndex = getNextPlayer();
+                numTurnos++;
+                System.out.println("[DEBUG Assembly] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 return false;
             }
         }
@@ -745,11 +758,11 @@ public class GameManager {
             slotDestino.addPlayer(jogadorAtual);
         }
         
-        // Incrementar contador de turnos (só conta movimentos válidos!)
-        numTurnos++;
-
         // Passar o turno para o próximo jogador
+        System.out.println("[DEBUG Move] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
+        numTurnos++;  // Incrementar contador de turnos
         jogadorAtualIndex = getNextPlayer();
+        System.out.println("[DEBUG Move] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
         return true;  // Movimento realizado com sucesso!
 
     }

@@ -511,4 +511,79 @@ class TestGameManager {
         // O turno deveria ter contado?
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TESTE DIAGNÓSTICO - Reproduzir erro LanguageBasedMovementRestrictions
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Test
+    void testLanguageRestriction_turnAdvancesToCorrectPlayer() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Java Dev", "Java", "BLUE"},
+                {"3", "Python Dev", "Python", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        System.out.println("=== TESTE Language Restriction ===");
+        System.out.println("Jogador inicial: " + gm.getCurrentPlayerID());
+
+        // Jogador 1 (C) tenta mover 4 casas - INVÁLIDO (C max 3)
+        boolean result = gm.moveCurrentPlayer(4);
+        System.out.println("moveCurrentPlayer(4) retornou: " + result);
+        System.out.println("Jogador atual após movimento inválido: " + gm.getCurrentPlayerID());
+
+        assertEquals(2, gm.getCurrentPlayerID(),
+                "Após jogador C falhar movimento (max 3 casas), deveria passar para jogador 2, não 3");
+    }
+
+    @Test
+    void testLanguageRestriction_Assembly_turnAdvancesToCorrectPlayer() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "Assembly Dev", "Assembly", "PURPLE"},
+                {"2", "Java Dev", "Java", "BLUE"},
+                {"3", "Python Dev", "Python", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        System.out.println("=== TESTE Assembly Restriction ===");
+        System.out.println("Jogador inicial: " + gm.getCurrentPlayerID());
+
+        // Jogador 1 (Assembly) tenta mover 3 casas - INVÁLIDO (Assembly max 2)
+        boolean result = gm.moveCurrentPlayer(3);
+        System.out.println("moveCurrentPlayer(3) retornou: " + result);
+        System.out.println("Jogador atual após movimento inválido: " + gm.getCurrentPlayerID());
+
+        assertEquals(2, gm.getCurrentPlayerID(),
+                "Após jogador Assembly falhar movimento (max 2 casas), deveria passar para jogador 2, não 3");
+    }
+
+    @Test
+    void testLanguageRestriction_multipleFailures_correctRotation() {
+        GameManager gm = new GameManager();
+        String[][] players = {
+                {"1", "C Dev", "C", "PURPLE"},
+                {"2", "Assembly Dev", "Assembly", "BLUE"},
+                {"3", "Java Dev", "Java", "GREEN"}
+        };
+        gm.createInitialBoard(players, 20);
+
+        System.out.println("=== TESTE Multiple Language Restrictions ===");
+
+        // Jogador 1 (C) tenta mover 5 - INVÁLIDO
+        gm.moveCurrentPlayer(5);
+        System.out.println("Após C falhar: jogador atual = " + gm.getCurrentPlayerID());
+        assertEquals(2, gm.getCurrentPlayerID(), "Deveria ser jogador 2");
+
+        // Jogador 2 (Assembly) tenta mover 4 - INVÁLIDO
+        gm.moveCurrentPlayer(4);
+        System.out.println("Após Assembly falhar: jogador atual = " + gm.getCurrentPlayerID());
+        assertEquals(3, gm.getCurrentPlayerID(), "Deveria ser jogador 3");
+
+        // Jogador 3 (Java) move normalmente
+        gm.moveCurrentPlayer(4);
+        System.out.println("Após Java mover: jogador atual = " + gm.getCurrentPlayerID());
+        assertEquals(1, gm.getCurrentPlayerID(), "Deveria voltar ao jogador 1");
+    }
 }
