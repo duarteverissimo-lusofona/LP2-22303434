@@ -663,7 +663,7 @@ public class GameManager {
         
         // REGRA: Jogadores PRESOS ou DERROTADOS não podem jogar
         // O turno passa e conta como uma jogada
-        if (jogadorAtual.getEstado() == Estado.DERROTADO) {
+        if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
             numTurnos++;  // Conta como um turno
             jogadorAtualIndex = getNextPlayer();  // Passa para o próximo
             return false;
@@ -694,19 +694,11 @@ public class GameManager {
             
             // Programadores C só podem mover até 3 casas
             if (temC && nrSpaces > 3) {
-                System.out.println("[DEBUG C] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
-                jogadorAtualIndex = getNextPlayer();
-                numTurnos++;
-                System.out.println("[DEBUG C] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 return false;
             }
             
             // Programadores Assembly só podem mover até 2 casas
             if (temAssembly && nrSpaces > 2) {
-                System.out.println("[DEBUG Assembly] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
-                jogadorAtualIndex = getNextPlayer();
-                numTurnos++;
-                System.out.println("[DEBUG Assembly] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
                 return false;
             }
         }
@@ -757,12 +749,7 @@ public class GameManager {
             slotAtual.removePlayer(jogadorAtual);
             slotDestino.addPlayer(jogadorAtual);
         }
-        
-        // Passar o turno para o próximo jogador
-        System.out.println("[DEBUG Move] ANTES: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
-        numTurnos++;  // Incrementar contador de turnos
-        jogadorAtualIndex = getNextPlayer();
-        System.out.println("[DEBUG Move] DEPOIS: jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
+
         return true;  // Movimento realizado com sucesso!
 
     }
@@ -1113,14 +1100,18 @@ public Jogador getJogador(int id) {
     public String reactToAbyssOrTool() {
         // Validações iniciais
         if (tabuleiro == null) {
+            numTurnos++;
+            jogadorAtualIndex = getNextPlayer();
             return null;
         }
         
-        // Obter jogador que acabou de jogar (moveCurrentPlayer já avançou o turno)
-        int idJogadorAnterior = getPreviousPlayer();
-        Jogador jogador = tabuleiro.getPlayer(idJogadorAnterior);
+        // Obter jogador atual (o turno ainda não avançou)
+        int idJogadorAtual = getCurrentPlayerID();
+        Jogador jogador = tabuleiro.getPlayer(idJogadorAtual);
 
         if (jogador == null) {
+            numTurnos++;
+            jogadorAtualIndex = getNextPlayer();
             return null;
         }
         
@@ -1135,9 +1126,11 @@ public Jogador getJogador(int id) {
             return null;
         }
         
-        // Se não houver evento na casa, retorna null
+        // Se não houver evento na casa, avança turno e retorna null
         Evento evento = slotAtual.getEvento();
         if (evento == null) {
+            numTurnos++;
+            jogadorAtualIndex = getNextPlayer();
             return null;
         }
         
@@ -1149,9 +1142,13 @@ public Jogador getJogador(int id) {
                 // Jogador não tem esta ferramenta - adiciona
                 jogador.addFerramenta(nomeFerramenta);
                 // A ferramenta permanece no slot para outros jogadores
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Recolheu ferramenta: " + nomeFerramenta;
             } else {
                 // Jogador já tem esta ferramenta - retorna mensagem
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Já possui ferramenta: " + nomeFerramenta;
             }
         } else {
@@ -1169,6 +1166,8 @@ public Jogador getJogador(int id) {
                     libertarJogadoresNaCasa(slotAtual, jogador);
                 }
                 
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return abyss.getNome() + " anulado por " + ferramentaAnuladora;
             }
             
@@ -1178,17 +1177,23 @@ public Jogador getJogador(int id) {
             if (casasRecuo == -1) {
                 // BlueScreenOfDeath: derrota o jogador e move para casa 1
                 jogador.setEstado(Estado.DERROTADO);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador derrotado";
                 
             } else if (casasRecuo == -2) {
                 // CicloInfinito: prende o jogador e liberta outros na mesma casa
                 jogador.setEstado(Estado.PRESO);
                 libertarJogadoresNaCasa(slotAtual, jogador);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso";
                 
             } else if (casasRecuo == -3) {
                 // Crash: volta para casa 1
                 moverJogadorParaPosicao(jogador, slotAtual, 1);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para casa 1";
                 
             } else if (casasRecuo == -4) {
@@ -1196,6 +1201,8 @@ public Jogador getJogador(int id) {
                 int recuo = ultimoDado / 2;
                 int novaPosicao = Math.max(1, posicaoJogador - recuo);
                 moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + recuo + " casa" + (recuo > 1 ? "s" : "");
                 
             } else if (casasRecuo == -5) {
@@ -1203,6 +1210,8 @@ public Jogador getJogador(int id) {
                 Integer posAnterior = posicaoAnterior.get(jogador.getId());
                 int novaPosicao = (posAnterior != null) ? posAnterior : posicaoJogador;
                 moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição anterior";
                 
             } else if (casasRecuo == -6) {
@@ -1210,6 +1219,8 @@ public Jogador getJogador(int id) {
                 Integer pos2Turnos = posicaoHaDoisTurnos.get(jogador.getId());
                 int novaPosicao = (pos2Turnos != null) ? pos2Turnos : posicaoJogador;
                 moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição de 2 turnos atrás";
                 
             } else if (casasRecuo == -7) {
@@ -1225,15 +1236,21 @@ public Jogador getJogador(int id) {
                             destino.addPlayer(j);
                         }
                     }
+                    numTurnos++;
+                    jogadorAtualIndex = getNextPlayer();
                     return "Caiu num " + abyss.getNome().toLowerCase() + "! Todos recuam 3 casas";
                 }
                 // Se só há 1 jogador, não acontece nada mas retorna mensagem
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Nada acontece";
                 
             } else {
                 // Recuar X casas (mínimo posição 1)
                 int novaPosicao = Math.max(1, posicaoJogador - casasRecuo);
                 moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
+                numTurnos++;
+                jogadorAtualIndex = getNextPlayer();
                 return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + casasRecuo + " casa" + (casasRecuo > 1 ? "s" : "");
             }
         }
