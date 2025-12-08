@@ -65,10 +65,15 @@ public class Tabuleiro {
     }
 
     public int getPosOf(Jogador jogador){
-
+        if (jogador == null) {
+            return -1;
+        }
+        
         for(Slot slot : slots){
-            if(slot.getJogadores().contains(jogador)){
-                return slot.getNrSlot();
+            for(Jogador j : slot.getJogadores()) {
+                if (j.getId() == jogador.getId()) {
+                    return slot.getNrSlot();
+                }
             }
         }
         return -1;

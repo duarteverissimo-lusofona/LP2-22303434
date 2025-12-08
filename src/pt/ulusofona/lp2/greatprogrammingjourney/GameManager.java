@@ -298,15 +298,6 @@ public class GameManager {
         posicaoAnterior.clear();
         posicaoHaDoisTurnos.clear();
         
-        // DEBUG: Mostrar jogadores criados
-        System.out.println("[DEBUG INIT] === JOGADORES CRIADOS ===");
-        for (Jogador j : tabuleiro.getListaJogadores()) {
-            System.out.println("[DEBUG INIT] ID: " + j.getId() + ", Nome: " + j.getNome() + ", Linguagens: " + j.getLinguagens());
-        }
-        System.out.println("[DEBUG INIT] jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
-        System.out.println("[DEBUG INIT] ========================");
-
-        
         return true;  // Tabuleiro criado com sucesso!
     }
 
