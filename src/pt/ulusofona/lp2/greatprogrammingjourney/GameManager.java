@@ -1216,198 +1216,162 @@ public Jogador getJogador(int id) {
         }
     }
 
+    /**
+     * Classe auxiliar para guardar dados carregados do ficheiro
+     */
+    private static class LoadContext {
+        int boardSize = -1;
+        int currentPlayer = -1;
+        int turnCount = -1;
+        int lastDice = 1;
+        HashMap<Integer, Integer> posAnterior = new HashMap<>();
+        HashMap<Integer, Integer> posDoisTurnos = new HashMap<>();
+        ArrayList<String[]> players = new ArrayList<>();
+        ArrayList<String[]> events = new ArrayList<>();
+    }
+
     public void loadGame(File file) throws InvalidFileException, java.io.FileNotFoundException {
-        // Verificar se o ficheiro existe
         if (file == null || !file.exists()) {
             throw new java.io.FileNotFoundException("Ficheiro não encontrado");
         }
 
+        LoadContext ctx = parseLoadedFile(file);
+
+        if (ctx.boardSize < 1 || ctx.currentPlayer < 0) {
+            throw new InvalidFileException();
+        }
+
+        this.tabuleiro = new Tabuleiro(ctx.boardSize);
+        this.jogadorAtualIndex = ctx.currentPlayer;
+        this.numTurnos = ctx.turnCount;
+        this.ultimoDado = ctx.lastDice;
+        this.posicaoAnterior = ctx.posAnterior;
+        this.posicaoHaDoisTurnos = ctx.posDoisTurnos;
+
+        processLoadedPlayers(ctx.players);
+        processLoadedEvents(ctx.events);
+    }
+
+    private LoadContext parseLoadedFile(File file) throws InvalidFileException {
+        LoadContext ctx = new LoadContext();
         String currentSection = null;
-        
-        // Variáveis temporárias para carregar dados
-        int loadedBoardSize = -1;
-        int loadedCurrentPlayer = -1;
-        int loadedTurnCount = -1;
-        int loadedLastDice = 1;
-        HashMap<Integer, Integer> loadedPosAnterior = new HashMap<>();
-        HashMap<Integer, Integer> loadedPosDoisTurnos = new HashMap<>();
-        ArrayList<String[]> loadedPlayers = new ArrayList<>();
-        ArrayList<String[]> loadedEvents = new ArrayList<>();
 
         try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
-
-                // Ignorar linhas vazias e comentários
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
-
-                // Detectar secção
                 if (line.startsWith("[") && line.endsWith("]")) {
                     currentSection = line.substring(1, line.length() - 1).trim();
                     continue;
                 }
-
                 if (currentSection == null) {
                     throw new InvalidFileException();
                 }
 
-                // Processar linha conforme a secção
                 String[] partes = line.split("=", 2);
                 if (partes.length != 2) {
                     throw new InvalidFileException();
                 }
-
                 String key = partes[0].trim();
                 String value = partes[1].trim();
 
-                switch (currentSection) {
-                    case "GAME":
-                        if (key.equals("boardSize")) {
-                            loadedBoardSize = Integer.parseInt(value);
-                        } else if (key.equals("currentPlayer")) {
-                            loadedCurrentPlayer = Integer.parseInt(value);
-                        } else if (key.equals("turnCount")) {
-                            loadedTurnCount = Integer.parseInt(value);
-                        } else if (key.equals("lastDice")) {
-                            loadedLastDice = Integer.parseInt(value);
-                        }
-                        break;
-                    case "POSITION_HISTORY":
-                        if (key.startsWith("anterior:")) {
-                            int playerId = Integer.parseInt(key.substring("anterior:".length()));
-                            loadedPosAnterior.put(playerId, Integer.parseInt(value));
-                        } else if (key.startsWith("doisTurnos:")) {
-                            int playerId = Integer.parseInt(key.substring("doisTurnos:".length()));
-                            loadedPosDoisTurnos.put(playerId, Integer.parseInt(value));
-                        }
-                        break;
-                    case "PLAYERS":
-                        loadedPlayers.add(new String[]{key, value});
-                        break;
-                    case "EVENTS":
-                        loadedEvents.add(new String[]{key, value});
-                        break;
-                }
+                parseSectionLine(ctx, currentSection, key, value);
             }
         } catch (java.io.IOException | NumberFormatException e) {
             throw new InvalidFileException();
         }
+        return ctx;
+    }
 
-        // Validar dados mínimos
-        if (loadedBoardSize < 1 || loadedCurrentPlayer < 0) {
-            throw new InvalidFileException();
+    private void parseSectionLine(LoadContext ctx, String section, String key, String value) {
+        switch (section) {
+            case "GAME" -> {
+                if (key.equals("boardSize")) { ctx.boardSize = Integer.parseInt(value); }
+                else if (key.equals("currentPlayer")) { ctx.currentPlayer = Integer.parseInt(value); }
+                else if (key.equals("turnCount")) { ctx.turnCount = Integer.parseInt(value); }
+                else if (key.equals("lastDice")) { ctx.lastDice = Integer.parseInt(value); }
+            }
+            case "POSITION_HISTORY" -> {
+                if (key.startsWith("anterior:")) {
+                    int id = Integer.parseInt(key.substring("anterior:".length()));
+                    ctx.posAnterior.put(id, Integer.parseInt(value));
+                } else if (key.startsWith("doisTurnos:")) {
+                    int id = Integer.parseInt(key.substring("doisTurnos:".length()));
+                    ctx.posDoisTurnos.put(id, Integer.parseInt(value));
+                }
+            }
+            case "PLAYERS" -> ctx.players.add(new String[]{key, value});
+            case "EVENTS" -> ctx.events.add(new String[]{key, value});
         }
+    }
 
-        // Criar novo tabuleiro
-        this.tabuleiro = new Tabuleiro(loadedBoardSize);
-        this.jogadorAtualIndex = loadedCurrentPlayer;
-        this.numTurnos = loadedTurnCount;
-        this.ultimoDado = loadedLastDice;
-        this.posicaoAnterior = loadedPosAnterior;
-        this.posicaoHaDoisTurnos = loadedPosDoisTurnos;
-
-        // Processar jogadores
-        // Formato: posicao=id|nome|cor|estado|linguagens(;)|ferramentas(;)
+    private void processLoadedPlayers(ArrayList<String[]> loadedPlayers) throws InvalidFileException {
         for (String[] playerData : loadedPlayers) {
             try {
                 int posicao = Integer.parseInt(playerData[0]);
-                String[] valores = playerData[1].split("\\|", -1);
-                
-                if (valores.length < 5) {
-                    throw new InvalidFileException();
-                }
+                String[] v = playerData[1].split("\\|", -1);
+                if (v.length < 5) { throw new InvalidFileException(); }
 
-                int id = Integer.parseInt(valores[0].trim());
-                String nome = valores[1].trim();
-                Cor cor = Cor.fromString(valores[2].trim());
-                String estadoStr = valores[3].trim();
-                String linguagensStr = valores[4].trim();
-                String ferramentasStr = valores.length > 5 ? valores[5].trim() : "";
+                int id = Integer.parseInt(v[0].trim());
+                String nome = v[1].trim();
+                Cor cor = Cor.fromString(v[2].trim());
+                Estado estado = parseEstado(v[3].trim());
+                ArrayList<String> linguagens = parseListaSeparadaPorPontoVirgula(v[4].trim());
+                ArrayList<String> ferramentas = v.length > 5 ? parseListaSeparadaPorPontoVirgula(v[5].trim()) : new ArrayList<>();
 
-                // Converter estado
-                Estado estado;
-                switch (estadoStr) {
-                    case "EM_JOGO" -> estado = Estado.EM_JOGO;
-                    case "DERROTADO" -> estado = Estado.DERROTADO;
-                    case "PRESO" -> estado = Estado.PRESO;
-                    default -> throw new InvalidFileException();
-                }
-
-                // Converter linguagens
-                ArrayList<String> linguagens = new ArrayList<>();
-                if (!linguagensStr.isEmpty()) {
-                    String[] langs = linguagensStr.split(";");
-                    for (String lang : langs) {
-                        if (!lang.trim().isEmpty()) {
-                            linguagens.add(lang.trim());
-                        }
-                    }
-                }
-
-                // Criar jogador
                 Jogador jogador = new Jogador(id, nome, cor, linguagens, posicao);
                 jogador.setEstado(estado);
+                for (String f : ferramentas) { jogador.addFerramenta(f); }
 
-                // Adicionar ferramentas
-                if (!ferramentasStr.isEmpty()) {
-                    String[] tools = ferramentasStr.split(";");
-                    for (String tool : tools) {
-                        if (!tool.trim().isEmpty()) {
-                            jogador.addFerramenta(tool.trim());
-                        }
-                    }
-                }
-
-                // Colocar jogador no tabuleiro
                 tabuleiro.botarJogador(jogador, posicao);
-                // Remover da posição 1 se diferente (botarJogador coloca na lista mas precisamos ajustar slot)
                 if (posicao != 1) {
                     Slot slotInicio = tabuleiro.getSlot(1);
-                    if (slotInicio != null) {
-                        slotInicio.removePlayer(jogador);
-                    }
+                    if (slotInicio != null) { slotInicio.removePlayer(jogador); }
                 }
-            } catch (NumberFormatException e) {
-                throw new InvalidFileException();
+            } catch (NumberFormatException e) { throw new InvalidFileException(); }
+        }
+    }
+
+    private Estado parseEstado(String estadoStr) throws InvalidFileException {
+        return switch (estadoStr) {
+            case "EM_JOGO" -> Estado.EM_JOGO;
+            case "DERROTADO" -> Estado.DERROTADO;
+            case "PRESO" -> Estado.PRESO;
+            default -> throw new InvalidFileException();
+        };
+    }
+
+    private ArrayList<String> parseListaSeparadaPorPontoVirgula(String str) {
+        ArrayList<String> lista = new ArrayList<>();
+        if (!str.isEmpty()) {
+            for (String item : str.split(";")) {
+                if (!item.trim().isEmpty()) { lista.add(item.trim()); }
             }
         }
+        return lista;
+    }
 
-        // Processar eventos
-        // Formato: posicao=tipo:id  (A=Abyss, T=Tool)
+    private void processLoadedEvents(ArrayList<String[]> loadedEvents) throws InvalidFileException {
         for (String[] eventData : loadedEvents) {
             try {
                 int posicao = Integer.parseInt(eventData[0]);
-                String tipoId = eventData[1];
-                
-                String[] partes = tipoId.split(":");
-                if (partes.length != 2) {
-                    throw new InvalidFileException();
-                }
+                String[] partes = eventData[1].split(":");
+                if (partes.length != 2) { throw new InvalidFileException(); }
 
                 String tipo = partes[0].trim();
                 int id = Integer.parseInt(partes[1].trim());
 
-                Evento evento;
-                if (tipo.equals("A")) {
-                    evento = createAbyss(id);
-                } else if (tipo.equals("T")) {
-                    evento = createTool(id);
-                } else {
-                    throw new InvalidFileException();
-                }
+                Evento evento = tipo.equals("A") ? createAbyss(id) : tipo.equals("T") ? createTool(id) : null;
+                if (evento == null && !tipo.equals("A") && !tipo.equals("T")) { throw new InvalidFileException(); }
 
                 if (evento != null) {
                     Slot slot = tabuleiro.getSlot(posicao);
-                    if (slot != null) {
-                        slot.setEvento(evento);
-                    }
+                    if (slot != null) { slot.setEvento(evento); }
                 }
-            } catch (NumberFormatException e) {
-                throw new InvalidFileException();
-            }
+            } catch (NumberFormatException e) { throw new InvalidFileException(); }
         }
     }
 
