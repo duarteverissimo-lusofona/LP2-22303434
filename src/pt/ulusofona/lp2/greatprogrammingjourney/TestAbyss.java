@@ -134,7 +134,7 @@ public class TestAbyss {
         assertEquals("Ciclo Infinito", abyss.getNome());
         assertEquals(8, abyss.getId());
         assertEquals(-2, abyss.getCasasRecuo()); // -2 = jogador preso
-        assertEquals("Ajuda Do Professor", abyss.getFerramentaAnuladora());
+        assertEquals("Programação Funcional", abyss.getFerramentaAnuladora());
     }
 
     @Test
@@ -666,7 +666,7 @@ public class TestAbyss {
             {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "5", "3"}, // tipo 1 = Tool, subtipo 5 = AjudaDoProfessor, posição 3
+            {"1", "1", "3"}, // tipo 1 = Tool, subtipo 5 = AjudaDoProfessor, posição 3
             {"0", "8", "5"}  // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
         };
         createScenario(players, 15, events);

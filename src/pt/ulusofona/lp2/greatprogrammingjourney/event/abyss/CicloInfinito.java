@@ -3,7 +3,7 @@ package pt.ulusofona.lp2.greatprogrammingjourney.event.abyss;
 
 public class CicloInfinito extends Abyss {
     public CicloInfinito() {
-        super("Ciclo Infinito", 8, "infinite-loop.png", "Ajuda Do Professor", -2); // -2 = prende o jogador
+        super("Ciclo Infinito", 8, "infinite-loop.png", "Programação Funcional", -2); // -2 = prende o jogador
     }
 
     @Override
