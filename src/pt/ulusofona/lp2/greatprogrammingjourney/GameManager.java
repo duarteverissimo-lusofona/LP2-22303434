@@ -715,14 +715,18 @@ public class GameManager {
         // ═════════════════════════════════════════════════════════════════
         int posicaoDestino = posicaoAtual + nrSpaces;
         int boardSize = tabuleiro.getWorldSize();
-        int posicaoFinal = 0;
+        int posicaoFinal;
 
-        if(posicaoDestino >= boardSize){
+        if (posicaoDestino > boardSize) {
             // Ultrapassou! Calcular o "bounce"
             int excesso = posicaoDestino - boardSize;
             posicaoFinal = boardSize - excesso;
+            // Garantir que a posição é válida (mínimo 1)
+            if (posicaoFinal < 1) {
+                posicaoFinal = 1;
+            }
         } else {
-            // Movimento normal
+            // Movimento normal (inclui aterrar exatamente na última casa = vitória)
             posicaoFinal = posicaoDestino;
         }
 
@@ -1087,19 +1091,29 @@ public Jogador getJogador(int id) {
      * Deve ser chamada DEPOIS de moveCurrentPlayer()!
      */
     public String reactToAbyssOrTool() {
-        if (tabuleiro == null) return avancarTurno(null);
+        if (tabuleiro == null) {
+            return avancarTurno(null);
+        }
         
         Jogador jogador = tabuleiro.getPlayer(getCurrentPlayerID());
-        if (jogador == null) return avancarTurno(null);
+        if (jogador == null) {
+            return avancarTurno(null);
+        }
         
         int posicaoJogador = tabuleiro.getPosOf(jogador);
-        if (posicaoJogador < 1) return avancarTurno(null);
+        if (posicaoJogador < 1) {
+            return avancarTurno(null);
+        }
         
         Slot slotAtual = tabuleiro.getSlot(posicaoJogador);
-        if (slotAtual == null) return avancarTurno(null);
+        if (slotAtual == null) {
+            return avancarTurno(null);
+        }
         
         Evento evento = slotAtual.getEvento();
-        if (evento == null) return avancarTurno(null);
+        if (evento == null) {
+            return avancarTurno(null);
+        }
         
         if (evento.isTool()) {
             String nomeFerramenta = evento.getNome();
@@ -1115,7 +1129,9 @@ public Jogador getJogador(int id) {
         
         if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
             jogador.getFerramentas().remove(ferramentaAnuladora);
-            if (abyss.getCasasRecuo() == -2) libertarJogadoresNaCasa(slotAtual, jogador);
+            if (abyss.getCasasRecuo() == -2) {
+                libertarJogadoresNaCasa(slotAtual, jogador);
+            }
             return avancarTurno(abyss.getNome() + " anulado por " + ferramentaAnuladora);
         }
         
@@ -1201,13 +1217,307 @@ public Jogador getJogador(int id) {
     }
 
     public void loadGame(File file) throws InvalidFileException, java.io.FileNotFoundException {
+        // Verificar se o ficheiro existe
+        if (file == null || !file.exists()) {
+            throw new java.io.FileNotFoundException("Ficheiro não encontrado");
+        }
 
+        String currentSection = null;
+        
+        // Variáveis temporárias para carregar dados
+        int loadedBoardSize = -1;
+        int loadedCurrentPlayer = -1;
+        int loadedTurnCount = -1;
+        int loadedLastDice = 1;
+        HashMap<Integer, Integer> loadedPosAnterior = new HashMap<>();
+        HashMap<Integer, Integer> loadedPosDoisTurnos = new HashMap<>();
+        ArrayList<String[]> loadedPlayers = new ArrayList<>();
+        ArrayList<String[]> loadedEvents = new ArrayList<>();
 
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+
+                // Ignorar linhas vazias e comentários
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+
+                // Detectar secção
+                if (line.startsWith("[") && line.endsWith("]")) {
+                    currentSection = line.substring(1, line.length() - 1).trim();
+                    continue;
+                }
+
+                if (currentSection == null) {
+                    throw new InvalidFileException();
+                }
+
+                // Processar linha conforme a secção
+                String[] partes = line.split("=", 2);
+                if (partes.length != 2) {
+                    throw new InvalidFileException();
+                }
+
+                String key = partes[0].trim();
+                String value = partes[1].trim();
+
+                switch (currentSection) {
+                    case "GAME":
+                        if (key.equals("boardSize")) {
+                            loadedBoardSize = Integer.parseInt(value);
+                        } else if (key.equals("currentPlayer")) {
+                            loadedCurrentPlayer = Integer.parseInt(value);
+                        } else if (key.equals("turnCount")) {
+                            loadedTurnCount = Integer.parseInt(value);
+                        } else if (key.equals("lastDice")) {
+                            loadedLastDice = Integer.parseInt(value);
+                        }
+                        break;
+                    case "POSITION_HISTORY":
+                        if (key.startsWith("anterior:")) {
+                            int playerId = Integer.parseInt(key.substring("anterior:".length()));
+                            loadedPosAnterior.put(playerId, Integer.parseInt(value));
+                        } else if (key.startsWith("doisTurnos:")) {
+                            int playerId = Integer.parseInt(key.substring("doisTurnos:".length()));
+                            loadedPosDoisTurnos.put(playerId, Integer.parseInt(value));
+                        }
+                        break;
+                    case "PLAYERS":
+                        loadedPlayers.add(new String[]{key, value});
+                        break;
+                    case "EVENTS":
+                        loadedEvents.add(new String[]{key, value});
+                        break;
+                }
+            }
+        } catch (java.io.IOException | NumberFormatException e) {
+            throw new InvalidFileException();
+        }
+
+        // Validar dados mínimos
+        if (loadedBoardSize < 1 || loadedCurrentPlayer < 0) {
+            throw new InvalidFileException();
+        }
+
+        // Criar novo tabuleiro
+        this.tabuleiro = new Tabuleiro(loadedBoardSize);
+        this.jogadorAtualIndex = loadedCurrentPlayer;
+        this.numTurnos = loadedTurnCount;
+        this.ultimoDado = loadedLastDice;
+        this.posicaoAnterior = loadedPosAnterior;
+        this.posicaoHaDoisTurnos = loadedPosDoisTurnos;
+
+        // Processar jogadores
+        // Formato: posicao=id|nome|cor|estado|linguagens(;)|ferramentas(;)
+        for (String[] playerData : loadedPlayers) {
+            try {
+                int posicao = Integer.parseInt(playerData[0]);
+                String[] valores = playerData[1].split("\\|", -1);
+                
+                if (valores.length < 5) {
+                    throw new InvalidFileException();
+                }
+
+                int id = Integer.parseInt(valores[0].trim());
+                String nome = valores[1].trim();
+                Cor cor = Cor.fromString(valores[2].trim());
+                String estadoStr = valores[3].trim();
+                String linguagensStr = valores[4].trim();
+                String ferramentasStr = valores.length > 5 ? valores[5].trim() : "";
+
+                // Converter estado
+                Estado estado;
+                switch (estadoStr) {
+                    case "EM_JOGO" -> estado = Estado.EM_JOGO;
+                    case "DERROTADO" -> estado = Estado.DERROTADO;
+                    case "PRESO" -> estado = Estado.PRESO;
+                    default -> throw new InvalidFileException();
+                }
+
+                // Converter linguagens
+                ArrayList<String> linguagens = new ArrayList<>();
+                if (!linguagensStr.isEmpty()) {
+                    String[] langs = linguagensStr.split(";");
+                    for (String lang : langs) {
+                        if (!lang.trim().isEmpty()) {
+                            linguagens.add(lang.trim());
+                        }
+                    }
+                }
+
+                // Criar jogador
+                Jogador jogador = new Jogador(id, nome, cor, linguagens, posicao);
+                jogador.setEstado(estado);
+
+                // Adicionar ferramentas
+                if (!ferramentasStr.isEmpty()) {
+                    String[] tools = ferramentasStr.split(";");
+                    for (String tool : tools) {
+                        if (!tool.trim().isEmpty()) {
+                            jogador.addFerramenta(tool.trim());
+                        }
+                    }
+                }
+
+                // Colocar jogador no tabuleiro
+                tabuleiro.botarJogador(jogador, posicao);
+                // Remover da posição 1 se diferente (botarJogador coloca na lista mas precisamos ajustar slot)
+                if (posicao != 1) {
+                    Slot slotInicio = tabuleiro.getSlot(1);
+                    if (slotInicio != null) {
+                        slotInicio.removePlayer(jogador);
+                    }
+                }
+            } catch (NumberFormatException e) {
+                throw new InvalidFileException();
+            }
+        }
+
+        // Processar eventos
+        // Formato: posicao=tipo:id  (A=Abyss, T=Tool)
+        for (String[] eventData : loadedEvents) {
+            try {
+                int posicao = Integer.parseInt(eventData[0]);
+                String tipoId = eventData[1];
+                
+                String[] partes = tipoId.split(":");
+                if (partes.length != 2) {
+                    throw new InvalidFileException();
+                }
+
+                String tipo = partes[0].trim();
+                int id = Integer.parseInt(partes[1].trim());
+
+                Evento evento;
+                if (tipo.equals("A")) {
+                    evento = createAbyss(id);
+                } else if (tipo.equals("T")) {
+                    evento = createTool(id);
+                } else {
+                    throw new InvalidFileException();
+                }
+
+                if (evento != null) {
+                    Slot slot = tabuleiro.getSlot(posicao);
+                    if (slot != null) {
+                        slot.setEvento(evento);
+                    }
+                }
+            } catch (NumberFormatException e) {
+                throw new InvalidFileException();
+            }
+        }
     }
 
     public boolean saveGame(File file) {
+        if (file == null || tabuleiro == null) {
+            return false;
+        }
 
-        return true;
+        try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(file))) {
+            
+            // ═══════════════════════════════════════════════════════════════
+            // SECÇÃO [GAME] - Estado geral do jogo
+            // ═══════════════════════════════════════════════════════════════
+            bw.write("[GAME]");
+            bw.newLine();
+            bw.write("boardSize=" + tabuleiro.getWorldSize());
+            bw.newLine();
+            bw.write("currentPlayer=" + jogadorAtualIndex);
+            bw.newLine();
+            bw.write("turnCount=" + numTurnos);
+            bw.newLine();
+            bw.write("lastDice=" + ultimoDado);
+            bw.newLine();
+            bw.newLine();
+
+            // ═══════════════════════════════════════════════════════════════
+            // SECÇÃO [POSITION_HISTORY] - Histórico de posições
+            // ═══════════════════════════════════════════════════════════════
+            bw.write("[POSITION_HISTORY]");
+            bw.newLine();
+            if (posicaoAnterior != null) {
+                for (var entry : posicaoAnterior.entrySet()) {
+                    bw.write("anterior:" + entry.getKey() + "=" + entry.getValue());
+                    bw.newLine();
+                }
+            }
+            if (posicaoHaDoisTurnos != null) {
+                for (var entry : posicaoHaDoisTurnos.entrySet()) {
+                    bw.write("doisTurnos:" + entry.getKey() + "=" + entry.getValue());
+                    bw.newLine();
+                }
+            }
+            bw.newLine();
+
+            // ═══════════════════════════════════════════════════════════════
+            // SECÇÃO [PLAYERS] - Jogadores
+            // Formato: posicao=id|nome|cor|estado|linguagens(;)|ferramentas(;)
+            // ═══════════════════════════════════════════════════════════════
+            bw.write("[PLAYERS]");
+            bw.newLine();
+            List<Jogador> jogadores = tabuleiro.getListaJogadores();
+            if (jogadores != null) {
+                for (Jogador jogador : jogadores) {
+                    int posicao = tabuleiro.getPosOf(jogador);
+                    
+                    // Construir string de linguagens
+                    StringBuilder linguagens = new StringBuilder();
+                    if (jogador.getLinguagens() != null) {
+                        for (int i = 0; i < jogador.getLinguagens().size(); i++) {
+                            if (i > 0) {
+                                linguagens.append(";");
+                            }
+                            linguagens.append(jogador.getLinguagens().get(i));
+                        }
+                    }
+                    
+                    // Construir string de ferramentas
+                    StringBuilder ferramentas = new StringBuilder();
+                    if (jogador.getFerramentas() != null) {
+                        for (int i = 0; i < jogador.getFerramentas().size(); i++) {
+                            if (i > 0) {
+                                ferramentas.append(";");
+                            }
+                            ferramentas.append(jogador.getFerramentas().get(i));
+                        }
+                    }
+                    
+                    // Escrever linha do jogador
+                    bw.write(posicao + "=" + jogador.getId() + "|" + 
+                             jogador.getNome() + "|" + 
+                             jogador.getCor().name() + "|" + 
+                             jogador.getEstado().name() + "|" + 
+                             linguagens + "|" + 
+                             ferramentas);
+                    bw.newLine();
+                }
+            }
+            bw.newLine();
+
+            // ═══════════════════════════════════════════════════════════════
+            // SECÇÃO [EVENTS] - Eventos (abismos e ferramentas) no tabuleiro
+            // Formato: posicao=tipo:id  (A=Abyss, T=Tool)
+            // ═══════════════════════════════════════════════════════════════
+            bw.write("[EVENTS]");
+            bw.newLine();
+            for (int i = 1; i <= tabuleiro.getWorldSize(); i++) {
+                Slot slot = tabuleiro.getSlot(i);
+                if (slot != null && slot.getEvento() != null) {
+                    Evento evento = slot.getEvento();
+                    // toString() retorna "A:id" para Abyss ou "T:id" para Tool
+                    bw.write(i + "=" + evento.toString());
+                    bw.newLine();
+                }
+            }
+
+            return true;
+
+        } catch (java.io.IOException e) {
+            return false;
+        }
     }
 
 }

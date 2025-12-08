@@ -1,0 +1,43 @@
+[GAME]
+boardSize=79
+currentPlayer=5
+turnCount=11
+lastDice=2
+
+[POSITION_HISTORY]
+anterior:1=10
+anterior:2=8
+anterior:9=7
+doisTurnos:1=7
+doisTurnos:2=7
+doisTurnos:9=1
+
+[PLAYERS]
+16=1|Joshua Bloch|PURPLE|EM_JOGO|Java|Herança;Testes Unitários
+8=9|Anders Hejlsberg|BLUE|EM_JOGO|C#|Herança
+1=5|Dennis Ritchie|BROWN|EM_JOGO|C|
+10=2|Guido van Rossum|GREEN|EM_JOGO|Python|Herança;Testes Unitários
+
+[EVENTS]
+5=T:5
+6=T:4
+7=T:0
+9=T:1
+10=T:2
+17=T:1
+18=T:0
+19=T:2
+20=T:3
+29=T:4
+33=T:3
+36=T:5
+44=A:8
+45=A:9
+50=A:2
+52=A:5
+62=A:6
+63=A:4
+65=A:1
+68=A:0
+74=A:7
+78=A:3
