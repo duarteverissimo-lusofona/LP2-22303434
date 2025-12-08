@@ -1083,22 +1083,22 @@ public Jogador getJogador(int id) {
      */
     public String reactToAbyssOrTool() {
         if (tabuleiro == null) {
-            return avancarTurno(null);
+            return avancarTurno("O tabuleiro não pode ser null");
         }
         
         Jogador jogador = tabuleiro.getPlayer(getCurrentPlayerID());
         if (jogador == null) {
-            return avancarTurno(null);
+            return avancarTurno("O jogador não pode ser null");
         }
         
         int posicaoJogador = tabuleiro.getPosOf(jogador);
         if (posicaoJogador < 1) {
-            return avancarTurno(null);
+            return avancarTurno("A posição do jogador nao pode ser inferior a 1");
         }
         
         Slot slotAtual = tabuleiro.getSlot(posicaoJogador);
         if (slotAtual == null) {
-            return avancarTurno(null);
+            return avancarTurno("O slot não tem evento");
         }
         
         Evento evento = slotAtual.getEvento();
