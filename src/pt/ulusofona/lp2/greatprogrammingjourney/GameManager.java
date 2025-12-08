@@ -297,16 +297,8 @@ public class GameManager {
         ultimoDado = 0;
         posicaoAnterior.clear();
         posicaoHaDoisTurnos.clear();
-        
-        // DEBUG: Mostrar jogadores criados
-        System.out.println("[DEBUG INIT] === JOGADORES CRIADOS ===");
-        for (Jogador j : tabuleiro.getListaJogadores()) {
-            System.out.println("[DEBUG INIT] ID: " + j.getId() + ", Nome: " + j.getNome() + ", Linguagens: " + j.getLinguagens());
-        }
-        System.out.println("[DEBUG INIT] jogadorAtualIndex = " + jogadorAtualIndex + ", numTurnos = " + numTurnos);
-        System.out.println("[DEBUG INIT] ========================");
-
-        
+      
+       
         return true;  // Tabuleiro criado com sucesso!
     }
 
@@ -662,10 +654,8 @@ public class GameManager {
         }
         
         // REGRA: Jogadores PRESOS ou DERROTADOS não podem jogar
-        // O turno passa e conta como uma jogada
+        // O turno NÃO avança aqui - isso é feito no reactToAbyssOrTool()
         if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
-            numTurnos++;  // Conta como um turno
-            jogadorAtualIndex = getNextPlayer();  // Passa para o próximo
             return false;
         }
         
@@ -674,31 +664,24 @@ public class GameManager {
         // Algumas linguagens têm limites de movimento:
         // - C: máximo 3 casas por turno
         // - Assembly: máximo 2 casas por turno
-        // A restrição aplica-se se o jogador TEM a linguagem (qualquer posição)
+        // A restrição aplica-se com base na PRIMEIRA linguagem do jogador
         // ═════════════════════════════════════════════════════════════════
-        ArrayList<String> linguagens = jogadorAtual.getLinguagens();
+        String primeiraLinguagem = jogadorAtual.getPrimeiraLinguagem();
         
-        if (linguagens != null) {
-            // Verificar se tem C em qualquer posição
-            boolean temC = false;
-            boolean temAssembly = false;
-            
-            for (String lang : linguagens) {
-                if (lang != null && lang.trim().equalsIgnoreCase("C")) {
-                    temC = true;
-                }
-                if (lang != null && lang.trim().equalsIgnoreCase("Assembly")) {
-                    temAssembly = true;
-                }
-            }
-            
+        System.out.println("[DEBUG moveCurrentPlayer] jogador=" + jogadorAtual.getNome() + 
+            ", primeiraLinguagem=" + primeiraLinguagem + 
+            ", nrSpaces=" + nrSpaces + ", estado=" + jogadorAtual.getEstado());
+        
+        if (primeiraLinguagem != null) {
             // Programadores C só podem mover até 3 casas
-            if (temC && nrSpaces > 3) {
+            if (primeiraLinguagem.equalsIgnoreCase("C") && nrSpaces > 3) {
+                System.out.println("[DEBUG] Bloqueado por restrição C");
                 return false;
             }
             
             // Programadores Assembly só podem mover até 2 casas
-            if (temAssembly && nrSpaces > 2) {
+            if (primeiraLinguagem.equalsIgnoreCase("Assembly") && nrSpaces > 2) {
+                System.out.println("[DEBUG] Bloqueado por restrição Assembly");
                 return false;
             }
         }
@@ -1098,162 +1081,119 @@ public Jogador getJogador(int id) {
      * @return Mensagem descrevendo o que aconteceu, ou null se não havia evento
      */
     public String reactToAbyssOrTool() {
-        // Validações iniciais
         if (tabuleiro == null) {
-            numTurnos++;
-            jogadorAtualIndex = getNextPlayer();
-            return null;
+            return avancarTurnoERetornar(null);
         }
         
-        // Obter jogador atual (o turno ainda não avançou)
         int idJogadorAtual = getCurrentPlayerID();
         Jogador jogador = tabuleiro.getPlayer(idJogadorAtual);
-
         if (jogador == null) {
-            numTurnos++;
-            jogadorAtualIndex = getNextPlayer();
-            return null;
+            return avancarTurnoERetornar(null);
         }
         
-        // Encontrar posição atual do jogador
         int posicaoJogador = tabuleiro.getPosOf(jogador);
         if (posicaoJogador < 1) {
-            return null;
+            return avancarTurnoERetornar("");
         }
         
         Slot slotAtual = tabuleiro.getSlot(posicaoJogador);
         if (slotAtual == null) {
-            return null;
+            return avancarTurnoERetornar("");
         }
         
-        // Se não houver evento na casa, avança turno e retorna null
         Evento evento = slotAtual.getEvento();
         if (evento == null) {
-            numTurnos++;
-            jogadorAtualIndex = getNextPlayer();
-            return null;
+            return avancarTurnoERetornar("");
         }
         
         // POLIMORFISMO: usa isTool() para distinguir sem instanceof
         if (evento.isTool()) {
-            // É uma ferramenta - jogador recolhe (se ainda não tiver)
-            String nomeFerramenta = evento.getNome();
-            if (!jogador.getFerramentas().contains(nomeFerramenta)) {
-                // Jogador não tem esta ferramenta - adiciona
-                jogador.addFerramenta(nomeFerramenta);
-                // A ferramenta permanece no slot para outros jogadores
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Recolheu ferramenta: " + nomeFerramenta;
-            } else {
-                // Jogador já tem esta ferramenta - retorna mensagem
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Já possui ferramenta: " + nomeFerramenta;
-            }
+            return processarTool(jogador, evento);
         } else {
-            // É um Abyss - fazer cast seguro para Abyss (sabemos que não é Tool)
-            Abyss abyss = (Abyss) evento;
-            String ferramentaAnuladora = abyss.getFerramentaAnuladora();
-            
-            // Verificar se existe ferramenta que anula E se o jogador a tem
-            if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
-                // Jogador tem a ferramenta - anula o abismo
-                jogador.getFerramentas().remove(ferramentaAnuladora);
-                
-                // CicloInfinito: mesmo anulado, liberta outros jogadores na mesma casa
-                if (abyss.getCasasRecuo() == -2) {
-                    libertarJogadoresNaCasa(slotAtual, jogador);
-                }
-                
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return abyss.getNome() + " anulado por " + ferramentaAnuladora;
-            }
-            
-            // Aplicar efeito do abismo
-            int casasRecuo = abyss.getCasasRecuo();
-            
-            if (casasRecuo == -1) {
-                // BlueScreenOfDeath: derrota o jogador e move para casa 1
-                jogador.setEstado(Estado.DERROTADO);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador derrotado";
-                
-            } else if (casasRecuo == -2) {
-                // CicloInfinito: prende o jogador e liberta outros na mesma casa
-                jogador.setEstado(Estado.PRESO);
-                libertarJogadoresNaCasa(slotAtual, jogador);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso";
-                
-            } else if (casasRecuo == -3) {
-                // Crash: volta para casa 1
-                moverJogadorParaPosicao(jogador, slotAtual, 1);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para casa 1";
-                
-            } else if (casasRecuo == -4) {
-                // ErroDeLogica: recua metade do último dado (arredondado para baixo)
-                int recuo = ultimoDado / 2;
-                int novaPosicao = Math.max(1, posicaoJogador - recuo);
-                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + recuo + " casa" + (recuo > 1 ? "s" : "");
-                
-            } else if (casasRecuo == -5) {
-                // CodigoDuplicado: volta para posição anterior (anula o movimento)
-                Integer posAnterior = posicaoAnterior.get(jogador.getId());
-                int novaPosicao = (posAnterior != null) ? posAnterior : posicaoJogador;
-                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição anterior";
-                
-            } else if (casasRecuo == -6) {
-                // EfeitosSecundarios: volta para posição de 2 turnos atrás
-                Integer pos2Turnos = posicaoHaDoisTurnos.get(jogador.getId());
-                int novaPosicao = (pos2Turnos != null) ? pos2Turnos : posicaoJogador;
-                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição de 2 turnos atrás";
-                
-            } else if (casasRecuo == -7) {
-                // SegmentationFault: só ativa se 2+ jogadores na mesma casa
-                List<Jogador> jogadoresNaCasa = slotAtual.getJogadores();
-                if (jogadoresNaCasa.size() >= 2) {
-                    // Todos os jogadores na casa recuam 3 casas
-                    for (Jogador j : new ArrayList<>(jogadoresNaCasa)) {
-                        int novaPosicao = Math.max(1, posicaoJogador - 3);
-                        Slot destino = tabuleiro.getSlot(novaPosicao);
-                        if (destino != null) {
-                            slotAtual.removePlayer(j);
-                            destino.addPlayer(j);
-                        }
-                    }
-                    numTurnos++;
-                    jogadorAtualIndex = getNextPlayer();
-                    return "Caiu num " + abyss.getNome().toLowerCase() + "! Todos recuam 3 casas";
-                }
-                // Se só há 1 jogador, não acontece nada mas retorna mensagem
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Nada acontece";
-                
-            } else {
-                // Recuar X casas (mínimo posição 1)
-                int novaPosicao = Math.max(1, posicaoJogador - casasRecuo);
-                moverJogadorParaPosicao(jogador, slotAtual, novaPosicao);
-                numTurnos++;
-                jogadorAtualIndex = getNextPlayer();
-                return "Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + casasRecuo + " casa" + (casasRecuo > 1 ? "s" : "");
-            }
+            return processarAbyss(jogador, (Abyss) evento, slotAtual, posicaoJogador);
         }
+    }
+    
+    // Helper: avança turno e retorna mensagem
+    private String avancarTurnoERetornar(String mensagem) {
+        numTurnos++;
+        jogadorAtualIndex = getNextPlayer();
+        return mensagem;
+    }
+    
+    // Helper: processa ferramenta
+    private String processarTool(Jogador jogador, Evento evento) {
+        String nomeFerramenta = evento.getNome();
+        if (!jogador.getFerramentas().contains(nomeFerramenta)) {
+            jogador.addFerramenta(nomeFerramenta);
+            return avancarTurnoERetornar("Recolheu ferramenta: " + nomeFerramenta);
+        } else {
+            return avancarTurnoERetornar("Já possui ferramenta: " + nomeFerramenta);
+        }
+    }
+    
+    // Helper: processa abismo
+    private String processarAbyss(Jogador jogador, Abyss abyss, Slot slotAtual, int posicaoJogador) {
+        String ferramentaAnuladora = abyss.getFerramentaAnuladora();
+        
+        // Verificar se jogador tem ferramenta que anula o abismo
+        if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
+            jogador.getFerramentas().remove(ferramentaAnuladora);
+            if (abyss.getCasasRecuo() == -2) {
+                libertarJogadoresNaCasa(slotAtual, jogador);
+            }
+            return avancarTurnoERetornar(abyss.getNome() + " anulado por " + ferramentaAnuladora);
+        }
+        
+        // Aplicar efeito do abismo
+        int casasRecuo = abyss.getCasasRecuo();
+        String nomeAbyss = abyss.getNome().toLowerCase();
+        
+        if (casasRecuo == -1) { // BlueScreenOfDeath
+            jogador.setEstado(Estado.DERROTADO);
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Jogador derrotado");
+        } else if (casasRecuo == -2) { // CicloInfinito
+            jogador.setEstado(Estado.PRESO);
+            libertarJogadoresNaCasa(slotAtual, jogador);
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Jogador preso");
+        } else if (casasRecuo == -3) { // Crash
+            moverJogadorParaPosicao(jogador, slotAtual, 1);
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Volta para casa 1");
+        } else if (casasRecuo == -4) { // ErroDeLogica
+            int recuo = ultimoDado / 2;
+            moverJogadorParaPosicao(jogador, slotAtual, Math.max(1, posicaoJogador - recuo));
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Recua " + recuo + " casa" + (recuo > 1 ? "s" : ""));
+        } else if (casasRecuo == -5) { // CodigoDuplicado
+            Integer posAnterior = posicaoAnterior.get(jogador.getId());
+            moverJogadorParaPosicao(jogador, slotAtual, posAnterior != null ? posAnterior : posicaoJogador);
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Volta para posição anterior");
+        } else if (casasRecuo == -6) { // EfeitosSecundarios
+            Integer pos2Turnos = posicaoHaDoisTurnos.get(jogador.getId());
+            moverJogadorParaPosicao(jogador, slotAtual, pos2Turnos != null ? pos2Turnos : posicaoJogador);
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Volta para posição de 2 turnos atrás");
+        } else if (casasRecuo == -7) { // SegmentationFault
+            return processarSegmentationFault(slotAtual, posicaoJogador, nomeAbyss);
+        } else {
+            moverJogadorParaPosicao(jogador, slotAtual, Math.max(1, posicaoJogador - casasRecuo));
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Recua " + casasRecuo + " casa" + (casasRecuo > 1 ? "s" : ""));
+        }
+    }
+    
+    // Helper: processa SegmentationFault
+    private String processarSegmentationFault(Slot slotAtual, int posicaoJogador, String nomeAbyss) {
+        List<Jogador> jogadoresNaCasa = slotAtual.getJogadores();
+        if (jogadoresNaCasa.size() >= 2) {
+            for (Jogador j : new ArrayList<>(jogadoresNaCasa)) {
+                int novaPosicao = Math.max(1, posicaoJogador - 3);
+                Slot destino = tabuleiro.getSlot(novaPosicao);
+                if (destino != null) {
+                    slotAtual.removePlayer(j);
+                    destino.addPlayer(j);
+                }
+            }
+            return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Todos recuam 3 casas");
+        }
+        return avancarTurnoERetornar("Caiu num " + nomeAbyss + "! Nada acontece");
     }
     
     // Helper: move jogador para uma posição específica

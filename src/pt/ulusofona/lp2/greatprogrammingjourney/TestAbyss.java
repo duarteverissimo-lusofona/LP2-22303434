@@ -264,13 +264,18 @@ public class TestAbyss {
 
         assertEquals(1, getPosition(player));
 
-        // 1ª jogada: apanha Tratamento de Excepções na casa 3
+        // 1ª jogada do jogador 1: apanha Tratamento de Excepções na casa 3
         assertEquals(player, gm.getCurrentPlayerID());
         assertTrue(gm.moveCurrentPlayer(2)); // 1 -> 3
         gm.reactToAbyssOrTool();
         assertEquals(3, getPosition(player));
 
-        // 2ª jogada: cai no abismo na casa 5, mas tem counter
+        // Jogada do jogador 2 (para voltar ao jogador 1)
+        assertEquals(2, gm.getCurrentPlayerID());
+        gm.moveCurrentPlayer(1);
+        gm.reactToAbyssOrTool();
+
+        // 2ª jogada do jogador 1: cai no abismo na casa 5, mas tem counter
         assertEquals(player, gm.getCurrentPlayerID());
         assertTrue(gm.moveCurrentPlayer(2)); // 3 -> 5
         gm.reactToAbyssOrTool();
@@ -374,13 +379,18 @@ public class TestAbyss {
 
         assertEquals(1, getPosition(player));
 
-        // 1ª jogada: apanha Herança na casa 3
+        // 1ª jogada do jogador 1: apanha Herança na casa 3
         assertEquals(player, gm.getCurrentPlayerID());
         assertTrue(gm.moveCurrentPlayer(2)); // 1 -> 3
         gm.reactToAbyssOrTool();
         assertEquals(3, getPosition(player));
 
-        // 2ª jogada: cai no abismo na casa 5, mas tem counter
+        // Jogada do jogador 2 (para voltar ao jogador 1)
+        assertEquals(2, gm.getCurrentPlayerID());
+        gm.moveCurrentPlayer(1);
+        gm.reactToAbyssOrTool();
+
+        // 2ª jogada do jogador 1: cai no abismo na casa 5, mas tem counter
         assertEquals(player, gm.getCurrentPlayerID());
         assertTrue(gm.moveCurrentPlayer(2)); // 3 -> 5
         gm.reactToAbyssOrTool();
