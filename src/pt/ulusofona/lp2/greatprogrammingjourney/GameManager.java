@@ -680,8 +680,6 @@ public class GameManager {
         // REGRA: Jogadores PRESOS ou DERROTADOS não podem jogar
         // O turno passa e conta como uma jogada
         if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
-            numTurnos++;  // Conta como um turno
-            jogadorAtualIndex = getNextPlayer();  // Passa para o próximo
             return false;
         }
 
