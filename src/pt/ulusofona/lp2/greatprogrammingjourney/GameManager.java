@@ -1052,6 +1052,9 @@ public class GameManager {
             }
         }
 
+        // Verificar se algum jogador começa numa casa com evento (ex: CicloInfinito)
+        verificarEventosIniciais();
+
         return true;
     }
 
@@ -1246,6 +1249,70 @@ public class GameManager {
     }
 
     /**
+     * Verifica se algum jogador começa numa casa com evento.
+     * Processa os efeitos iniciais:
+     * - Ferramentas: jogador apanha automaticamente
+     * - CicloInfinito: jogador fica preso
+     * - BlueScreenOfDeath: jogador fica derrotado
+     */
+    private void verificarEventosIniciais() {
+        if (tabuleiro == null) {
+            return;
+        }
+        
+        List<Jogador> jogadores = tabuleiro.getListaJogadores();
+        if (jogadores == null) {
+            return;
+        }
+        
+        for (Jogador jogador : jogadores) {
+            int posicao = tabuleiro.getPosOf(jogador);
+            Slot slot = tabuleiro.getSlot(posicao);
+            
+            if (slot == null || slot.getEvento() == null) {
+                continue;
+            }
+            
+            Evento evento = slot.getEvento();
+            
+            // Processar ferramenta - jogador apanha se ainda não tiver
+            if (evento.isTool()) {
+                String nomeFerramenta = evento.getNome();
+                ArrayList<String> ferramentas = jogador.getFerramentas();
+                if (ferramentas == null || !ferramentas.contains(nomeFerramenta)) {
+                    jogador.addFerramenta(nomeFerramenta);
+                }
+                continue;
+            }
+            
+            // Processar abismo
+            Abyss abyss = (Abyss) evento;
+            
+            // Verificar se tem ferramenta para anular
+            String ferramentaAnuladora = abyss.getFerramentaAnuladora();
+            ArrayList<String> ferramentas = jogador.getFerramentas();
+            
+            if (ferramentaAnuladora != null && ferramentas != null 
+                    && ferramentas.contains(ferramentaAnuladora)) {
+                // Ferramenta anula o abismo, consome a ferramenta
+                ferramentas.remove(ferramentaAnuladora);
+                continue;
+            }
+            
+            // Processar efeito do abismo baseado no ID
+            switch (abyss.getId()) {
+                case 7 -> jogador.setEstado(Estado.DERROTADO);  // BlueScreenOfDeath
+                case 8 -> {  // CicloInfinito
+                    jogador.setEstado(Estado.PRESO);
+                    libertarJogadoresNaCasa(slot, jogador);
+                }
+                // Outros abismos que movem o jogador não fazem sentido no início
+                // (recuar de onde? voltar a que posição anterior?)
+            }
+        }
+    }
+
+    /**
      * Classe auxiliar para guardar dados carregados do ficheiro
      */
     private static class LoadContext {
@@ -1279,6 +1346,9 @@ public class GameManager {
 
         processLoadedPlayers(ctx.players);
         processLoadedEvents(ctx.events);
+        
+        // Verificar se algum jogador começa numa casa com evento (ex: CicloInfinito)
+        verificarEventosIniciais();
     }
 
     private LoadContext parseLoadedFile(File file) throws InvalidFileException {
