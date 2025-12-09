@@ -1135,6 +1135,10 @@ public class GameManager {
             return avancarTurno(null);  // Sem evento, mas avança o turno
         }
 
+        if (jogador.getEstado() == Estado.PRESO) {
+            return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
+        }
+
         if (evento.isTool()) {
             String nomeFerramenta = evento.getNome();
             if (!jogador.getFerramentas().contains(nomeFerramenta)) {
@@ -1149,9 +1153,7 @@ public class GameManager {
 
         ArrayList<String> ferramentasJogador = jogador.getFerramentas();
         
-        if (ferramentaAnuladora != null 
-                && ferramentasJogador != null 
-                && ferramentasJogador.contains(ferramentaAnuladora)) {
+        if (ferramentaAnuladora != null && ferramentasJogador != null && ferramentasJogador.contains(ferramentaAnuladora)) {
             ferramentasJogador.remove(ferramentaAnuladora);
             return avancarTurno(abyss.getNome() + " anulado por " + ferramentaAnuladora);
         }
@@ -1183,10 +1185,12 @@ public class GameManager {
     }
 
     private String processarCicloInfinito(Jogador jogador, Abyss abyss, Slot slotAtual) {
+
         // Se o jogador está PRESO, retorna mensagem e avança o turno
         if (jogador.getEstado() == Estado.PRESO) {
             return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
         }
+
         jogador.setEstado(Estado.PRESO);
         libertarJogadoresNaCasa(slotAtual, jogador);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso");
