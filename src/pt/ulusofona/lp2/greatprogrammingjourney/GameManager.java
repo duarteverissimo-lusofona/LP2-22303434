@@ -1118,10 +1118,7 @@ public class GameManager {
             return null;
         }
 
-        // Se o jogador está PRESO, retorna mensagem e avança o turno
-        if (jogador.getEstado() == Estado.PRESO) {
-            return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
-        }
+
 
         int posicaoJogador = tabuleiro.getPosOf(jogador);
         if (posicaoJogador < 1) {
@@ -1176,7 +1173,7 @@ public class GameManager {
             case 7 -> processarBlueScreen(jogador, abyss);                                // BlueScreenOfDeath
             case 8 -> processarCicloInfinito(jogador, abyss, slotAtual);                  // CicloInfinito
             case 9 -> processarSegmentationFault(abyss, slotAtual, posicaoJogador);       // SegmentationFault
-            default -> avancarTurno(null);
+            default -> avancarTurno("");
         };
     }
 
@@ -1186,6 +1183,10 @@ public class GameManager {
     }
 
     private String processarCicloInfinito(Jogador jogador, Abyss abyss, Slot slotAtual) {
+        // Se o jogador está PRESO, retorna mensagem e avança o turno
+        if (jogador.getEstado() == Estado.PRESO) {
+            return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
+        }
         jogador.setEstado(Estado.PRESO);
         libertarJogadoresNaCasa(slotAtual, jogador);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso");
