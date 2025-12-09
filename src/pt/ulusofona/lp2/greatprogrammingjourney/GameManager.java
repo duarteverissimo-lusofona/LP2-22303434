@@ -1191,8 +1191,12 @@ public class GameManager {
             return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
         }
 
-        jogador.setEstado(Estado.PRESO);
+        // PRIMEIRO: Libertar jogadores que já estavam presos nesta casa
         libertarJogadoresNaCasa(slotAtual, jogador);
+        
+        // DEPOIS: Prender o novo jogador
+        jogador.setEstado(Estado.PRESO);
+        
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso");
     }
 
