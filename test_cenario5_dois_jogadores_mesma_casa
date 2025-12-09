@@ -1,0 +1,14 @@
+[GAME]
+boardSize=10
+currentPlayer=1
+turnCount=1
+lastDice=2
+
+[POSITION_HISTORY]
+
+[PLAYERS]
+1=1|Jogador1|BLUE|EM_JOGO|Java|
+1=2|Jogador2|GREEN|EM_JOGO|Python|
+
+[EVENTS]
+3=A:9

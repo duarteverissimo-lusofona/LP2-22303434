@@ -86,7 +86,7 @@ public class TestAbyss {
     @Test
     public void testAbyss_FileNotFoundException_hasCorrectProperties() {
         FileNotFoundException abyss = new FileNotFoundException();
-        assertEquals("File Not Found Exeption", abyss.getNome());
+        assertEquals("File Not Found Exception", abyss.getNome());
         assertEquals(3, abyss.getId());
         assertEquals(3, abyss.getCasasRecuo());
         assertEquals("Tratamento de Excepções", abyss.getFerramentaAnuladora());

@@ -24,7 +24,7 @@ enum Cor {
     /**
      * Converte uma String para o enum Cor correspondente.
      * Exemplo: "blue" ou "BLUE" -> Cor.BLUE
-     * 
+     *
      * @param cor Nome da cor em texto
      * @return O enum Cor correspondente, ou null se não existir
      */
@@ -43,7 +43,7 @@ enum Cor {
 
 /**
  * Enum que representa os possíveis estados de um jogador durante o jogo.
- * 
+ *
  * EM_JOGO    - O jogador está ativo e pode jogar normalmente
  * DERROTADO  - O jogador foi eliminado (ex: caiu num BlueScreenOfDeath)
  * PRESO      - O jogador está preso (ex: caiu num CicloInfinito) e não pode mover
@@ -68,39 +68,39 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 1: CAMPOS DA CLASSE (Variáveis que guardam o estado do jogo)
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * O tabuleiro do jogo - contém todas as casas (slots) e os jogadores.
      * É onde toda a ação acontece!
      */
     private Tabuleiro tabuleiro;
-    
+
     /**
      * Índice do jogador que está a jogar neste momento.
      * Usado para saber de quem é a vez na rotação de turnos.
      * Nota: Este valor representa o ID do jogador atual, não a posição na lista.
      */
     private int jogadorAtualIndex;
-    
+
     /**
      * Contador de turnos - começa em 1 e aumenta a cada movimento válido.
      * Usado para estatísticas do jogo.
      */
     private int numTurnos;
-    
+
     /**
      * Guarda o último valor do dado lançado.
      * Necessário para o abismo "ErroDeLogica" que faz recuar metade do dado.
      */
     private int ultimoDado;
-    
+
     /**
      * Mapa que guarda a posição anterior de cada jogador.
      * Chave: ID do jogador | Valor: posição onde estava antes do último movimento
      * Usado pelo abismo "CodigoDuplicado" para anular o último movimento.
      */
     private HashMap<Integer, Integer> posicaoAnterior;
-    
+
     /**
      * Mapa que guarda a posição de cada jogador há 2 turnos atrás.
      * Chave: ID do jogador | Valor: posição onde estava há 2 turnos
@@ -111,7 +111,7 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 2: CONSTRUTOR
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Construtor do GameManager.
      * Inicializa os mapas de tracking de posições (vazios).
@@ -125,29 +125,37 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 3: CRIAÇÃO DE JOGADORES
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Cria um novo jogador a partir de um array de strings com as suas informações.
-     * 
+     *
      * O array deve ter exatamente 4 elementos:
      *   [0] = ID do jogador (número inteiro >= 0)
      *   [1] = Nome do jogador (não pode ser vazio)
      *   [2] = Linguagens de programação (separadas por ";", ex: "Java;Python")
      *   [3] = Cor do jogador (BLUE, BROWN, GREEN ou PURPLE)
-     * 
+     *
      * @param playerInfo Array com as informações do jogador
      * @return O jogador criado, ou null se alguma validação falhar
      */
-    public Jogador createJogador(String[] playerInfo) {
+    public Jogador createJogador(String[] playerInfo, List<String> coresDisponiveis) {
 
         // Extrair cada campo do array para variáveis mais legíveis
         String idStr = playerInfo[0];           // O ID vem como texto, precisamos converter
         String nome = playerInfo[1];            // Nome do jogador
-        String linguagensStr = playerInfo[2];   // Linguagens separadas por ";"
-        String corStr = playerInfo[3];          // Cor como texto
+        String linguagensStr = playerInfo[2];
+
+        String corStr = "";
+        if (playerInfo.length == 4) {
+            corStr = playerInfo[3];       // Linguagens separadas por ";"
+        } else {
+            corStr = coresDisponiveis.get(0);
+            coresDisponiveis.remove(0);
+
+        }
 
         // VALIDAÇÃO 1: O array tem de ter exatamente 4 elementos
-        if (playerInfo == null || playerInfo.length != 4) {
+        if (playerInfo == null || (playerInfo.length != 3 && playerInfo.length != 4)) {
             return null;  // Array inválido - não conseguimos criar o jogador
         }
 
@@ -185,7 +193,7 @@ public class GameManager {
         // Exemplo: "Java;Python;C" -> ["Java", "Python", "C"]
         ArrayList<String> linguagensProgramacao = new ArrayList<>();
         String[] partes = linguagensStr.split(";");
-        for(String s : partes){
+        for (String s : partes) {
             linguagensProgramacao.add(s.trim());  // trim() remove espaços extra
         }
 
@@ -212,24 +220,32 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 4: INICIALIZAÇÃO DO TABULEIRO
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Cria o tabuleiro inicial do jogo com os jogadores fornecidos.
-     * 
+     *
      * Esta é a função que "arranca" o jogo! Cria o tabuleiro, valida todos
      * os jogadores e coloca-os na posição inicial (casa 1).
-     * 
+     *
      * REGRAS DE VALIDAÇÃO:
      * - Deve haver entre 2 e 4 jogadores
      * - O tamanho do tabuleiro deve ser >= (nº jogadores × 2)
      * - Cada jogador deve ter um ID único
      * - Cada jogador deve ter uma cor única
-     * 
+     *
      * @param playerInfo Array bidimensional com info de cada jogador
      * @param worldSize Tamanho do tabuleiro (número de casas)
      * @return true se o tabuleiro foi criado com sucesso, false se houve erro
      */
     public boolean createInitialBoard(String[][] playerInfo, int worldSize) {
+
+        System.out.println("playerInfo:");
+        for (String[] linha : playerInfo) {
+            for (String s : linha) {
+                System.out.print(s + " |  ");
+            }
+            System.out.println();
+        }
 
         // Criar o tabuleiro com o tamanho especificado
         this.tabuleiro = new Tabuleiro(worldSize);
@@ -251,15 +267,24 @@ public class GameManager {
         ArrayList<Integer> ids = new ArrayList<>();   // IDs já usados
         ArrayList<String> cores = new ArrayList<>();  // Cores já usadas
 
+
+        List<String> coresDisponiveis = new ArrayList<>();
+        for (Cor cor : Cor.values()) {
+            coresDisponiveis.add(cor.toString());
+        }
+
+
+        // TODO
         // Criar cada jogador e adicioná-lo ao tabuleiro
         for (String[] player : playerInfo) {
+
             // Tentar criar o jogador (valida todos os campos)
-            Jogador jogador = createJogador(player);
+            Jogador jogador = createJogador(player, coresDisponiveis);
 
             if (jogador == null) {
-                System.out.println("jogador e null");
                 return false;  // Falhou a validação do jogador
             }
+            System.out.println("jogador criado!");
 
             // VALIDAÇÃO 3: ID único (não pode repetir)
             int id = Integer.parseInt(player[0]);
@@ -268,12 +293,14 @@ public class GameManager {
             }
             ids.add(id);
 
+
             // VALIDAÇÃO 4: Cor única (não pode repetir)
-            String cor = player[3];
-            if (cores.contains(cor)) {
+            if (cores.contains(jogador.getCor().toString())) {
                 return false;  // Cor duplicada!
             }
-            cores.add(cor);
+
+
+            cores.add(jogador.getCor().toString());
 
             // Colocar o jogador na casa 1 (posição inicial)
             tabuleiro.botarJogador(jogador, 1);
@@ -281,23 +308,23 @@ public class GameManager {
 
         // Encontrar o jogador com menor ID para começar o jogo
         int menorId = Integer.MAX_VALUE;
-        for(Jogador jogador : tabuleiro.getListaJogadores()){
-                if(jogador.getId() < menorId){
-                    menorId = jogador.getId();
-                }
+        for (Jogador jogador : tabuleiro.getListaJogadores()) {
+            if (jogador.getId() < menorId) {
+                menorId = jogador.getId();
+            }
         }
 
         // Definir quem começa: o jogador com menor ID
         jogadorAtualIndex = menorId;
-        
+
         // O jogo começa no turno 1
         numTurnos = 1;
-        
+
         // Limpar dados de jogos anteriores (reset completo)
         ultimoDado = 0;
         posicaoAnterior.clear();
         posicaoHaDoisTurnos.clear();
-        
+
         return true;  // Tabuleiro criado com sucesso!
     }
 
@@ -528,23 +555,23 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 5: ROTAÇÃO DE JOGADORES (Quem joga a seguir?)
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Obtém o ID do jogador que está a jogar atualmente.
-     * 
+     *
      * @return O ID do jogador atual
      */
     public int getCurrentPlayerID(){
         return jogadorAtualIndex;
     }
-    
+
     /**
      * Descobre qual é o próximo jogador a jogar.
-     * 
+     *
      * A rotação funciona por ordem de ID:
      * - Se temos jogadores com IDs 1, 2, 3 e está a jogar o 1, o próximo é o 2
      * - Se está a jogar o 3 (o maior), volta ao início (jogador 1)
-     * 
+     *
      * @return O ID do próximo jogador
      */
     public int getNextPlayer(){
@@ -560,7 +587,7 @@ public class GameManager {
             if (j.getEstado() == Estado.DERROTADO) {
                 continue;
             }
-            
+
             int id = j.getId();
 
             // Procurar o menor ID que seja maior que o atual
@@ -580,11 +607,11 @@ public class GameManager {
 
     /**
      * Descobre qual foi o jogador anterior (o que jogou antes do atual).
-     * 
+     *
      * Funciona ao contrário do getNextPlayer:
      * - Se está a jogar o 2, o anterior é o 1
      * - Se está a jogar o 1 (o menor), o anterior é o jogador com maior ID
-     * 
+     *
      * @return O ID do jogador anterior
      */
     public int getPreviousPlayer(){
@@ -599,7 +626,7 @@ public class GameManager {
             if (j.getEstado() == Estado.DERROTADO) {
                 continue;
             }
-            
+
             int id = j.getId();
 
             // Procurar o maior ID que seja menor que o atual
@@ -620,18 +647,18 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 6: MOVIMENTO DE JOGADORES
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Move o jogador atual um determinado número de casas para a frente.
      * Esta é uma das funções mais importantes do jogo!
-     * 
+     *
      * COMO FUNCIONA:
      * 1. Valida se o movimento é válido (1 a 6 casas)
      * 2. Verifica se o jogador pode mover (não está PRESO ou DERROTADO)
      * 3. Aplica restrições de linguagem (C: max 3, Assembly: max 2)
      * 4. Calcula a nova posição (com "bounce" se ultrapassar o tabuleiro)
      * 5. Move o jogador e passa o turno
-     * 
+     *
      * @param nrSpaces Número de casas a avançar (1 a 6, como um dado)
      * @return true se o movimento foi realizado, false se não foi possível
      */
@@ -645,13 +672,13 @@ public class GameManager {
         if(nrSpaces < 1 || nrSpaces > 6){
             return false;  // Turno não muda para dado inválido
         }
-        
+
         // Obter o jogador que está a jogar
         Jogador jogadorAtual = tabuleiro.getPlayer(jogadorAtualIndex);
         if (jogadorAtual == null) {
             return false;
         }
-        
+
         // REGRA: Jogadores PRESOS ou DERROTADOS não podem jogar
         // O turno passa e conta como uma jogada
         if (jogadorAtual.getEstado() == Estado.PRESO || jogadorAtual.getEstado() == Estado.DERROTADO) {
@@ -659,7 +686,7 @@ public class GameManager {
             jogadorAtualIndex = getNextPlayer();  // Passa para o próximo
             return false;
         }
-        
+
         // ═════════════════════════════════════════════════════════════════
         // RESTRIÇÕES DE LINGUAGEM
         // Algumas linguagens têm limites de movimento:
@@ -668,29 +695,29 @@ public class GameManager {
         // A restrição aplica-se APENAS à primeira linguagem do jogador (linguagem inicial)
         // ═════════════════════════════════════════════════════════════════
         String primeiraLinguagem = jogadorAtual.getPrimeiraLinguagem();
-        
+
         if (primeiraLinguagem != null) {
             // Programadores C só podem mover até 3 casas
             if (primeiraLinguagem.equalsIgnoreCase("C") && nrSpaces > 3) {
                 return false;
             }
-            
+
             // Programadores Assembly só podem mover até 2 casas
             if (primeiraLinguagem.equalsIgnoreCase("Assembly") && nrSpaces > 2) {
                 return false;
             }
         }
 
-        
+
         // Guardar o valor do dado (necessário para o abismo "ErroDeLogica")
         ultimoDado = nrSpaces;
-        
+
         // ═════════════════════════════════════════════════════════════════
         // GUARDAR HISTÓRICO DE POSIÇÕES
         // Necessário para os abismos CodigoDuplicado e EfeitosSecundarios
         // ═════════════════════════════════════════════════════════════════
         int posicaoAtual = tabuleiro.getPosOf(jogadorAtual);
-        
+
         // Guardar posição de 2 turnos atrás (para EfeitosSecundarios)
         Integer posAnterior = posicaoAnterior.get(jogadorAtual.getId());
         if (posAnterior != null) {
@@ -739,11 +766,11 @@ public class GameManager {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 7: ESTADO DO JOGO (O jogo acabou? Quem ganhou?)
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Verifica se o jogo terminou.
      * O jogo termina quando um jogador chega à última casa do tabuleiro.
-     * 
+     *
      * @return true se o jogo acabou (há um vencedor), false se ainda está a decorrer
      */
     public boolean gameIsOver(){
@@ -754,7 +781,7 @@ public class GameManager {
         }
 
         List<Jogador> jogadores = tabuleiro.getListaJogadores();
-        
+
         // Sem jogadores, não há jogo
         if (jogadores == null) {
             return false;
@@ -771,7 +798,7 @@ public class GameManager {
     /**
      * Obtém os resultados finais do jogo para mostrar ao utilizador.
      * Só deve ser chamada depois de gameIsOver() retornar true!
-     * 
+     *
      * FORMATO DO RESULTADO:
      * - Linha 1: "THE GREAT PROGRAMMING JOURNEY"
      * - Linha 2: (vazia)
@@ -783,7 +810,7 @@ public class GameManager {
      * - Linha 8: (vazia)
      * - Linha 9: "RESTANTES"
      * - Linhas seguintes: jogadores ordenados por proximidade da meta
-     * 
+     *
      * @return Lista de strings com os resultados, ou null se o jogo não terminou
      */
     public ArrayList<String> getGameResults(){
@@ -810,7 +837,7 @@ public class GameManager {
         jogadores.sort((a,b) -> {
             int jogadorA = tabuleiro.getPosOf(a);
             int jogadorB = tabuleiro.getPosOf(b);
-            
+
             // Quem está mais à frente vem primeiro
             int comparacaoPosicao = Integer.compare(jogadorB, jogadorA);
             if (comparacaoPosicao != 0) {
@@ -839,14 +866,14 @@ public class GameManager {
             int posicao = tabuleiro.getPosOf(jogador);
             resultado.add(jogador.getNome() + " " + posicao);
         }
-        
+
         return resultado;
     }
 
 
 
     public JPanel getAuthorsPanel(){
-            return new JPanel();
+        return new JPanel();
         //A função getAuthorsPanel() devolve um painel gráfico personalizado para a janela de "Créditos".
         //
         //Retorno:
@@ -871,7 +898,7 @@ public class GameManager {
     // SEÇÃO 8: CRIAÇÃO DE EVENTOS (Abismos e Ferramentas)
     // ═══════════════════════════════════════════════════════════════════════════
 
-    // 
+    //
     // O jogo tem dois tipos de eventos que podem aparecer nas casas:
     // - ABISMOS: Armadilhas que prejudicam o jogador (recuar, prender, derrotar)
     // - FERRAMENTAS: Itens que ajudam o jogador (anulam abismos específicos)
@@ -879,7 +906,7 @@ public class GameManager {
 
     /**
      * Cria um abismo (Abyss) baseado no seu ID.
-     * 
+     *
      * LISTA DE ABISMOS:
      * ID 0: ErroDeSintaxe    - Recua 1 casa (anulado por Herança)
      * ID 1: ErroDeLogica     - Recua metade do dado
@@ -891,7 +918,7 @@ public class GameManager {
      * ID 7: BlueScreenOfDeath - Jogador é DERROTADO! (anulado por AjudaDoProfessor)
      * ID 8: CicloInfinito    - Jogador fica PRESO (anulado por ProgramacaoFuncional)
      * ID 9: SegmentationFault - Derrotado se 2+ jogadores na mesma casa (anulado por UnitTests)
-     * 
+     *
      * @param id ID do abismo a criar
      * @return O abismo criado, ou null se ID inválido
      */
@@ -913,7 +940,7 @@ public class GameManager {
 
     /**
      * Cria uma ferramenta (Tool) baseada no seu ID.
-     * 
+     *
      * LISTA DE FERRAMENTAS:
      * ID 0: Herança             - Anula ErroDeSintaxe
      * ID 1: ProgramacaoFuncional - Anula CicloInfinito
@@ -921,7 +948,7 @@ public class GameManager {
      * ID 3: TratamentoDeExcepcoes - Anula Exception
      * ID 4: IDE                  - Anula FileNotFoundException
      * ID 5: AjudaDoProfessor    - Anula BlueScreenOfDeath
-     * 
+     *
      * @param id ID da ferramenta a criar
      * @return A ferramenta criada, ou null se ID inválido
      */
@@ -939,7 +966,7 @@ public class GameManager {
 
     /**
      * Cria um evento (Abismo ou Ferramenta) baseado no tipo e subtipo.
-     * 
+     *
      * @param tipo 0 = Abismo, 1 = Ferramenta
      * @param subtipo ID específico do evento (ver createAbyss/createTool)
      * @return O evento criado, ou null se inválido
@@ -953,12 +980,12 @@ public class GameManager {
     }
 
 
-public Jogador getJogador(int id) {
-    if (tabuleiro == null) {
-       return null;
+    public Jogador getJogador(int id) {
+        if (tabuleiro == null) {
+            return null;
+        }
+        return tabuleiro.getPlayer(id);
     }
-    return tabuleiro.getPlayer(id);
-}
 
     public boolean createInitialBoard(String[][] playerInfo, int worldSize, String[][] abyssesAndTools) {
 
@@ -1042,8 +1069,8 @@ public Jogador getJogador(int id) {
                 jogadoresVivos.add(jogador);
             }
         }
-        
-        
+
+
         for (int i = 0; i < jogadoresVivos.size(); i++) {
             Jogador jogador = jogadoresVivos.get(i);
             result.append(jogador.getNome());
@@ -1067,7 +1094,7 @@ public Jogador getJogador(int id) {
     // ═══════════════════════════════════════════════════════════════════════════
     // SEÇÃO 9: REAÇÃO A EVENTOS (O que acontece quando pisas num abismo/ferramenta?)
     // ═══════════════════════════════════════════════════════════════════════════
-    
+
     /**
      * Avança o turno e retorna a mensagem especificada.
      */
@@ -1085,27 +1112,27 @@ public Jogador getJogador(int id) {
         if (tabuleiro == null) {
             return avancarTurno("O tabuleiro não pode ser null");
         }
-        
+
         Jogador jogador = tabuleiro.getPlayer(getCurrentPlayerID());
         if (jogador == null) {
             return avancarTurno("O jogador não pode ser null");
         }
-        
+
         int posicaoJogador = tabuleiro.getPosOf(jogador);
         if (posicaoJogador < 1) {
             return avancarTurno("A posição do jogador nao pode ser inferior a 1");
         }
-        
+
         Slot slotAtual = tabuleiro.getSlot(posicaoJogador);
         if (slotAtual == null) {
             return avancarTurno("O slot não tem evento");
         }
-        
+
         Evento evento = slotAtual.getEvento();
         if (evento == null) {
             return avancarTurno(null);
         }
-        
+
         if (evento.isTool()) {
             String nomeFerramenta = evento.getNome();
             if (!jogador.getFerramentas().contains(nomeFerramenta)) {
@@ -1114,10 +1141,10 @@ public Jogador getJogador(int id) {
             }
             return avancarTurno("Já possui ferramenta: " + nomeFerramenta);
         }
-        
+
         Abyss abyss = (Abyss) evento;
         String ferramentaAnuladora = abyss.getFerramentaAnuladora();
-        
+
         if (ferramentaAnuladora != null && jogador.getFerramentas().contains(ferramentaAnuladora)) {
             jogador.getFerramentas().remove(ferramentaAnuladora);
             if (abyss.getCasasRecuo() == -2) {
@@ -1125,7 +1152,7 @@ public Jogador getJogador(int id) {
             }
             return avancarTurno(abyss.getNome() + " anulado por " + ferramentaAnuladora);
         }
-        
+
         return switch (abyss.getCasasRecuo()) {
             case -1 -> processarBlueScreen(jogador, abyss);
             case -2 -> processarCicloInfinito(jogador, abyss, slotAtual);
@@ -1137,41 +1164,41 @@ public Jogador getJogador(int id) {
             default -> processarRecuoNormal(jogador, abyss, slotAtual, posicaoJogador);
         };
     }
-    
+
     private String processarBlueScreen(Jogador jogador, Abyss abyss) {
         jogador.setEstado(Estado.DERROTADO);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Jogador derrotado");
     }
-    
+
     private String processarCicloInfinito(Jogador jogador, Abyss abyss, Slot slotAtual) {
         jogador.setEstado(Estado.PRESO);
         libertarJogadoresNaCasa(slotAtual, jogador);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Jogador preso");
     }
-    
+
     private String processarCrash(Jogador jogador, Abyss abyss, Slot slotAtual) {
         moverJogadorParaPosicao(jogador, slotAtual, 1);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Volta para casa 1");
     }
-    
+
     private String processarErroDeLogica(Jogador jogador, Abyss abyss, Slot slotAtual, int posicaoJogador) {
         int recuo = ultimoDado / 2;
         moverJogadorParaPosicao(jogador, slotAtual, Math.max(1, posicaoJogador - recuo));
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + recuo + " casa" + (recuo > 1 ? "s" : ""));
     }
-    
+
     private String processarCodigoDuplicado(Jogador jogador, Abyss abyss, Slot slotAtual, int posicaoJogador) {
         Integer posAnterior = posicaoAnterior.get(jogador.getId());
         moverJogadorParaPosicao(jogador, slotAtual, posAnterior != null ? posAnterior : posicaoJogador);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição anterior");
     }
-    
+
     private String processarEfeitosSecundarios(Jogador jogador, Abyss abyss, Slot slotAtual, int posicaoJogador) {
         Integer pos2Turnos = posicaoHaDoisTurnos.get(jogador.getId());
         moverJogadorParaPosicao(jogador, slotAtual, pos2Turnos != null ? pos2Turnos : posicaoJogador);
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Volta para posição de 2 turnos atrás");
     }
-    
+
     private String processarSegmentationFault(Abyss abyss, Slot slotAtual, int posicaoJogador) {
         List<Jogador> jogadoresNaCasa = slotAtual.getJogadores();
         if (jogadoresNaCasa.size() >= 2) {
@@ -1183,12 +1210,12 @@ public Jogador getJogador(int id) {
         }
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Nada acontece");
     }
-    
+
     private String processarRecuoNormal(Jogador jogador, Abyss abyss, Slot slotAtual, int posicaoJogador) {
         moverJogadorParaPosicao(jogador, slotAtual, Math.max(1, posicaoJogador - abyss.getCasasRecuo()));
         return avancarTurno("Caiu num " + abyss.getNome().toLowerCase() + "! Recua " + abyss.getCasasRecuo() + " casa" + (abyss.getCasasRecuo() > 1 ? "s" : ""));
     }
-    
+
     // Helper: move jogador para uma posição específica
     private void moverJogadorParaPosicao(Jogador jogador, Slot slotAtual, int novaPosicao) {
         Slot slotDestino = tabuleiro.getSlot(novaPosicao);
@@ -1197,7 +1224,7 @@ public Jogador getJogador(int id) {
             slotDestino.addPlayer(jogador);
         }
     }
-    
+
     // Helper: liberta jogadores presos na mesma casa (exceto o jogador atual)
     private void libertarJogadoresNaCasa(Slot slot, Jogador jogadorAtual) {
         for (Jogador j : slot.getJogadores()) {
@@ -1372,7 +1399,7 @@ public Jogador getJogador(int id) {
         }
 
         try (java.io.BufferedWriter bw = new java.io.BufferedWriter(new java.io.FileWriter(file))) {
-            
+
             // ═══════════════════════════════════════════════════════════════
             // SECÇÃO [GAME] - Estado geral do jogo
             // ═══════════════════════════════════════════════════════════════
@@ -1417,7 +1444,7 @@ public Jogador getJogador(int id) {
             if (jogadores != null) {
                 for (Jogador jogador : jogadores) {
                     int posicao = tabuleiro.getPosOf(jogador);
-                    
+
                     // Construir string de linguagens
                     StringBuilder linguagens = new StringBuilder();
                     if (jogador.getLinguagens() != null) {
@@ -1428,7 +1455,7 @@ public Jogador getJogador(int id) {
                             linguagens.append(jogador.getLinguagens().get(i));
                         }
                     }
-                    
+
                     // Construir string de ferramentas
                     StringBuilder ferramentas = new StringBuilder();
                     if (jogador.getFerramentas() != null) {
@@ -1439,14 +1466,14 @@ public Jogador getJogador(int id) {
                             ferramentas.append(jogador.getFerramentas().get(i));
                         }
                     }
-                    
+
                     // Escrever linha do jogador
-                    bw.write(posicao + "=" + jogador.getId() + "|" + 
-                             jogador.getNome() + "|" + 
-                             jogador.getCor().name() + "|" + 
-                             jogador.getEstado().name() + "|" + 
-                             linguagens + "|" + 
-                             ferramentas);
+                    bw.write(posicao + "=" + jogador.getId() + "|" +
+                            jogador.getNome() + "|" +
+                            jogador.getCor().name() + "|" +
+                            jogador.getEstado().name() + "|" +
+                            linguagens + "|" +
+                            ferramentas);
                     bw.newLine();
                 }
             }
@@ -1476,4 +1503,3 @@ public Jogador getJogador(int id) {
     }
 
 }
-

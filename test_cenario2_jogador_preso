@@ -1,0 +1,14 @@
+[GAME]
+boardSize=10
+currentPlayer=1
+turnCount=5
+lastDice=3
+
+[POSITION_HISTORY]
+
+[PLAYERS]
+5=1|Teste|BLUE|PRESO|Java|
+6=1|ola|PURPLE|EM_JOGO|Python|
+
+[EVENTS]
+5=A:8

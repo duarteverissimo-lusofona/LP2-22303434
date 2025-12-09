@@ -1,0 +1,13 @@
+[GAME]
+boardSize=10
+currentPlayer=99
+turnCount=1
+lastDice=1
+
+[POSITION_HISTORY]
+
+[PLAYERS]
+3=99|Teste|BLUE|EM_JOGO|Java|
+
+[EVENTS]
+5=A:0
