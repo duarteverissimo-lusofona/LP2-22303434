@@ -5,7 +5,7 @@ import pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.*;
 import pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception;
 import pt.ulusofona.lp2.greatprogrammingjourney.event.tool.*;
 
-import javax.naming.directory.InvalidAttributesException;
+
 import javax.swing.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -44,7 +44,6 @@ enum Cor {
 
 /**
  * Enum que representa os possíveis estados de um jogador durante o jogo.
- *
  * EM_JOGO    - O jogador está ativo e pode jogar normalmente
  * DERROTADO  - O jogador foi eliminado (ex: caiu num BlueScreenOfDeath)
  * PRESO      - O jogador está preso (ex: caiu num CicloInfinito) e não pode mover
@@ -129,7 +128,6 @@ public class GameManager {
 
     /**
      * Cria um novo jogador a partir de um array de strings com as suas informações.
-     *
      * O array deve ter exatamente 4 elementos:
      *   [0] = ID do jogador (número inteiro >= 0)
      *   [1] = Nome do jogador (não pode ser vazio)
@@ -224,10 +222,8 @@ public class GameManager {
 
     /**
      * Cria o tabuleiro inicial do jogo com os jogadores fornecidos.
-     *
      * Esta é a função que "arranca" o jogo! Cria o tabuleiro, valida todos
      * os jogadores e coloca-os na posição inicial (casa 1).
-     *
      * REGRAS DE VALIDAÇÃO:
      * - Deve haver entre 2 e 4 jogadores
      * - O tamanho do tabuleiro deve ser >= (nº jogadores × 2)
@@ -359,6 +355,7 @@ public class GameManager {
         if(png != null){
             return png;
         }
+
 
         return null;
     }
@@ -799,7 +796,6 @@ public class GameManager {
     /**
      * Obtém os resultados finais do jogo para mostrar ao utilizador.
      * Só deve ser chamada depois de gameIsOver() retornar true!
-     *
      * FORMATO DO RESULTADO:
      * - Linha 1: "THE GREAT PROGRAMMING JOURNEY"
      * - Linha 2: (vazia)
@@ -1120,6 +1116,11 @@ public class GameManager {
         Jogador jogador = tabuleiro.getPlayer(getCurrentPlayerID());
         if (jogador == null) {
             return null;
+        }
+
+        // Se o jogador está PRESO, retorna mensagem e avança o turno
+        if (jogador.getEstado() == Estado.PRESO) {
+            return avancarTurno(jogador.getNome() + " está preso e não pode " + "jogar");
         }
 
         int posicaoJogador = tabuleiro.getPosOf(jogador);
