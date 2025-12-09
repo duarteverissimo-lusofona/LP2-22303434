@@ -60,7 +60,6 @@ public class TestAbyss {
         ErroDeSintaxe abyss = new ErroDeSintaxe();
         assertEquals("Erro de sintaxe", abyss.getNome());
         assertEquals(0, abyss.getId());
-        assertEquals(1, abyss.getCasasRecuo());
         assertEquals("IDE", abyss.getFerramentaAnuladora());
     }
 
@@ -69,17 +68,15 @@ public class TestAbyss {
         ErroDeLogica abyss = new ErroDeLogica();
         assertEquals("Erro de Lógica", abyss.getNome());
         assertEquals(1, abyss.getId());
-        assertEquals(-4, abyss.getCasasRecuo()); // -4 = recua metade do dado
         assertEquals("Testes Unitários", abyss.getFerramentaAnuladora());
     }
 
     @Test
     public void testAbyss_Exception_hasCorrectProperties() {
-        pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception abyss = 
-            new pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception();
+        pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception abyss =
+                new pt.ulusofona.lp2.greatprogrammingjourney.event.abyss.Exception();
         assertEquals("Exception", abyss.getNome());
         assertEquals(2, abyss.getId());
-        assertEquals(2, abyss.getCasasRecuo());
         assertEquals("Tratamento de Excepções", abyss.getFerramentaAnuladora());
     }
 
@@ -88,7 +85,6 @@ public class TestAbyss {
         FileNotFoundException abyss = new FileNotFoundException();
         assertEquals("File Not Found Exception", abyss.getNome());
         assertEquals(3, abyss.getId());
-        assertEquals(3, abyss.getCasasRecuo());
         assertEquals("Tratamento de Excepções", abyss.getFerramentaAnuladora());
     }
 
@@ -97,7 +93,6 @@ public class TestAbyss {
         Crash abyss = new Crash();
         assertEquals("Crash", abyss.getNome());
         assertEquals(4, abyss.getId());
-        assertEquals(-3, abyss.getCasasRecuo()); // -3 = volta para casa 1
         assertNull(abyss.getFerramentaAnuladora()); // Crash não tem ferramenta anuladora
     }
 
@@ -106,7 +101,6 @@ public class TestAbyss {
         CodigoDuplicado abyss = new CodigoDuplicado();
         assertEquals("Código Duplicado", abyss.getNome());
         assertEquals(5, abyss.getId());
-        assertEquals(-5, abyss.getCasasRecuo()); // -5 = volta posição anterior
         assertEquals("Herança", abyss.getFerramentaAnuladora());
     }
 
@@ -115,7 +109,6 @@ public class TestAbyss {
         EfeitosSecundarios abyss = new EfeitosSecundarios();
         assertEquals("Efeitos Secundários", abyss.getNome());
         assertEquals(6, abyss.getId());
-        assertEquals(-6, abyss.getCasasRecuo()); // -6 = volta posição 2 turnos atrás
         assertEquals("Programação Funcional", abyss.getFerramentaAnuladora());
     }
 
@@ -124,7 +117,6 @@ public class TestAbyss {
         BlueScreenOfDeath abyss = new BlueScreenOfDeath();
         assertEquals("Blue Screen of Death", abyss.getNome());
         assertEquals(7, abyss.getId());
-        assertEquals(-1, abyss.getCasasRecuo()); // -1 = jogador derrotado
         assertNull(abyss.getFerramentaAnuladora()); // BSOD não tem ferramenta anuladora
     }
 
@@ -133,7 +125,6 @@ public class TestAbyss {
         CicloInfinito abyss = new CicloInfinito();
         assertEquals("Ciclo Infinito", abyss.getNome());
         assertEquals(8, abyss.getId());
-        assertEquals(-2, abyss.getCasasRecuo()); // -2 = jogador preso
         assertEquals("Programação Funcional", abyss.getFerramentaAnuladora());
     }
 
@@ -142,7 +133,6 @@ public class TestAbyss {
         SegmentationFault abyss = new SegmentationFault();
         assertEquals("Segmentation Fault", abyss.getNome());
         assertEquals(9, abyss.getId());
-        assertEquals(-7, abyss.getCasasRecuo()); // -7 = todos recuam 3 se 2+ jogadores
         assertNull(abyss.getFerramentaAnuladora()); // SegFault não tem ferramenta anuladora
     }
 
@@ -187,7 +177,7 @@ public class TestAbyss {
         assertEquals(1, tool.getId());
         assertTrue(tool.isTool());
     }
-    
+
     @Test
     public void testTool_AjudaDoProfessor_hasCorrectProperties() {
         AjudaDoProfessor tool = new AjudaDoProfessor();
@@ -199,15 +189,15 @@ public class TestAbyss {
     // ========================= Test Abyss Effects ====================
 
     @Test
-    public void test_syntax_error_sem_tool() {
+    public void test_syntax_error_sem_tool() throws InvalidFileException {
         // Cenário: jogador 1 e 2, tabuleiro de 10 casas
         // Abismo ErroDeSintaxe (id=0) na casa 3
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "0", "3"} // tipo 0 = Abyss, subtipo 0 = ErroDeSintaxe, posição 3
+                {"0", "0", "3"} // tipo 0 = Abyss, subtipo 0 = ErroDeSintaxe, posição 3
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -228,11 +218,11 @@ public class TestAbyss {
     public void test_exception_sem_tool() {
         // Cenário: abismo Exception (id=2) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "2", "5"} // tipo 0 = Abyss, subtipo 2 = Exception, posição 5
+                {"0", "2", "5"} // tipo 0 = Abyss, subtipo 2 = Exception, posição 5
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -252,12 +242,12 @@ public class TestAbyss {
     public void test_exception_com_tool() {
         // Cenário: ferramenta TratamentoDeExcepcoes (id=3) na casa 3, abismo Exception (id=2) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "3", "3"}, // tipo 1 = Tool, subtipo 3 = TratamentoDeExcepcoes, posição 3
-            {"0", "2", "5"}  // tipo 0 = Abyss, subtipo 2 = Exception, posição 5
+                {"1", "3", "3"}, // tipo 1 = Tool, subtipo 3 = TratamentoDeExcepcoes, posição 3
+                {"0", "2", "5"}  // tipo 0 = Abyss, subtipo 2 = Exception, posição 5
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -288,11 +278,11 @@ public class TestAbyss {
     public void test_file_not_found_sem_tool() {
         // Cenário: abismo FileNotFoundException (id=3) na casa 6
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "3", "6"} // tipo 0 = Abyss, subtipo 3 = FileNotFoundException, posição 6
+                {"0", "3", "6"} // tipo 0 = Abyss, subtipo 3 = FileNotFoundException, posição 6
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -312,11 +302,11 @@ public class TestAbyss {
     public void test_crash_envia_para_inicio() {
         // Cenário: jogador começa na posição 5, crash na casa 8
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "4", "8"} // tipo 0 = Abyss, subtipo 4 = Crash, posição 8
+                {"0", "4", "8"} // tipo 0 = Abyss, subtipo 4 = Crash, posição 8
         };
         createScenario(players, 15, events);
         int player = 1;
@@ -343,11 +333,11 @@ public class TestAbyss {
     public void test_duplicated_code_sem_tool() {
         // Cenário: abismo CodigoDuplicado (id=5) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "5", "5"} // tipo 0 = Abyss, subtipo 5 = CodigoDuplicado, posição 5
+                {"0", "5", "5"} // tipo 0 = Abyss, subtipo 5 = CodigoDuplicado, posição 5
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -367,12 +357,12 @@ public class TestAbyss {
     public void test_duplicated_code_com_tool() {
         // Cenário: ferramenta Herança (id=0) na casa 3, abismo CodigoDuplicado (id=5) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "0", "3"}, // tipo 1 = Tool, subtipo 0 = Herança, posição 3
-            {"0", "5", "5"}  // tipo 0 = Abyss, subtipo 5 = CodigoDuplicado, posição 5
+                {"1", "0", "3"}, // tipo 1 = Tool, subtipo 0 = Herança, posição 3
+                {"0", "5", "5"}  // tipo 0 = Abyss, subtipo 5 = CodigoDuplicado, posição 5
         };
         createScenario(players, 10, events);
         int player = 1;
@@ -403,11 +393,11 @@ public class TestAbyss {
     public void test_secondary_effects_sem_tool() {
         // Cenário: abismo EfeitosSecundarios (id=6) na casa 7
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "6", "7"} // tipo 0 = Abyss, subtipo 6 = EfeitosSecundarios, posição 7
+                {"0", "6", "7"} // tipo 0 = Abyss, subtipo 6 = EfeitosSecundarios, posição 7
         };
         createScenario(players, 15, events);
         int player = 1;
@@ -447,12 +437,12 @@ public class TestAbyss {
     public void test_secondary_effects_com_tool() {
         // Cenário: ferramenta ProgramacaoFuncional (id=1) na casa 3, abismo EfeitosSecundarios (id=6) na casa 7
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "1", "3"}, // tipo 1 = Tool, subtipo 1 = ProgramacaoFuncional, posição 3
-            {"0", "6", "7"}  // tipo 0 = Abyss, subtipo 6 = EfeitosSecundarios, posição 7
+                {"1", "1", "3"}, // tipo 1 = Tool, subtipo 1 = ProgramacaoFuncional, posição 3
+                {"0", "6", "7"}  // tipo 0 = Abyss, subtipo 6 = EfeitosSecundarios, posição 7
         };
         createScenario(players, 15, events);
         int player = 1;
@@ -492,11 +482,11 @@ public class TestAbyss {
     public void test_segmentation_fault() {
         // Cenário: abismo SegmentationFault (id=9) na casa 4
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "9", "4"} // tipo 0 = Abyss, subtipo 9 = SegmentationFault, posição 4
+                {"0", "9", "4"} // tipo 0 = Abyss, subtipo 9 = SegmentationFault, posição 4
         };
         createScenario(players, 10, events);
         int player1 = 1;
@@ -531,11 +521,11 @@ public class TestAbyss {
     public void test_blue_screen_of_death_defeats_player() {
         // Cenário: abismo BlueScreenOfDeath (id=7) na casa 7
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "7", "7"} // tipo 0 = Abyss, subtipo 7 = BlueScreenOfDeath, posição 7
+                {"0", "7", "7"} // tipo 0 = Abyss, subtipo 7 = BlueScreenOfDeath, posição 7
         };
         createScenario(players, 15, events);
         int playerId = 1;
@@ -565,12 +555,12 @@ public class TestAbyss {
     public void test_infinite_loop_basic() {
         // Cenário: abismo CicloInfinito (id=8) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"},
-            {"3", "Player3", "Kotlin", "GREEN"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"},
+                {"3", "Player3", "Kotlin", "GREEN"}
         };
         String[][] events = {
-            {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
+                {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
         };
         createScenario(players, 15, events);
         int player1 = 1;
@@ -599,11 +589,11 @@ public class TestAbyss {
     public void test_infinite_loop_libertar_jogadores() {
         // Cenário: quando um novo jogador entra no ciclo infinito, liberta os anteriores
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
+                {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
         };
         createScenario(players, 15, events);
         int player1 = 1;
@@ -633,11 +623,11 @@ public class TestAbyss {
     public void test_infinite_loop_jogador_preso_nao_move() {
         // Cenário: jogador preso não pode mover
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
+                {"0", "8", "5"} // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
         };
         createScenario(players, 15, events);
         int player1 = 1;
@@ -662,12 +652,12 @@ public class TestAbyss {
     public void test_infinite_loop_tool() {
         // Cenário: ferramenta AjudaDoProfessor (id=5) na casa 3, abismo CicloInfinito (id=8) na casa 5
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "1", "3"}, // tipo 1 = Tool, subtipo 5 = AjudaDoProfessor, posição 3
-            {"0", "8", "5"}  // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
+                {"1", "1", "3"}, // tipo 1 = Tool, subtipo 5 = AjudaDoProfessor, posição 3
+                {"0", "8", "5"}  // tipo 0 = Abyss, subtipo 8 = CicloInfinito, posição 5
         };
         createScenario(players, 15, events);
         int player1 = 1;
@@ -698,11 +688,11 @@ public class TestAbyss {
     public void test_logic_error_sem_tool() {
         // Cenário: abismo ErroDeLogica (id=1) na casa 7
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"0", "1", "7"} // tipo 0 = Abyss, subtipo 1 = ErroDeLogica, posição 7
+                {"0", "1", "7"} // tipo 0 = Abyss, subtipo 1 = ErroDeLogica, posição 7
         };
         createScenario(players, 15, events);
         int player = 1;
@@ -722,12 +712,12 @@ public class TestAbyss {
     public void test_logic_error_com_tool() {
         // Cenário: ferramenta UnitTests (id=2) na casa 3, abismo ErroDeLogica (id=1) na casa 7
         String[][] players = {
-            {"1", "Player1", "Java", "PURPLE"},
-            {"2", "Player2", "Python", "BLUE"}
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
         };
         String[][] events = {
-            {"1", "2", "3"}, // tipo 1 = Tool, subtipo 2 = UnitTests, posição 3
-            {"0", "1", "7"}  // tipo 0 = Abyss, subtipo 1 = ErroDeLogica, posição 7
+                {"1", "2", "3"}, // tipo 1 = Tool, subtipo 2 = UnitTests, posição 3
+                {"0", "1", "7"}  // tipo 0 = Abyss, subtipo 1 = ErroDeLogica, posição 7
         };
         createScenario(players, 15, events);
         int player = 1;
@@ -759,7 +749,7 @@ public class TestAbyss {
     public void testAbyss_toString_returnsCorrectFormat() {
         ErroDeSintaxe abyss = new ErroDeSintaxe();
         assertEquals("A:0", abyss.toString());
-        
+
         BlueScreenOfDeath bsod = new BlueScreenOfDeath();
         assertEquals("A:7", bsod.toString());
     }
@@ -768,7 +758,7 @@ public class TestAbyss {
     public void testTool_toString_returnsCorrectFormat() {
         IDE ide = new IDE();
         assertEquals("T:4", ide.toString());
-        
+
         Heranca heranca = new Heranca();
         assertEquals("T:0", heranca.toString());
     }
