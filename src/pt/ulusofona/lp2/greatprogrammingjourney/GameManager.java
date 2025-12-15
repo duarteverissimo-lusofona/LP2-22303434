@@ -886,7 +886,12 @@ public class GameManager {
 
     public HashMap<String, String> customizeBoard(){
 
-        return new HashMap<>();
+        HashMap<String, String> tabuleiro = new HashMap<>();
+
+        tabuleiro.put("hasNewAbyss", "true");
+        tabuleiro.put("hasNewTool", "true" );
+
+        return tabuleiro;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -929,6 +934,7 @@ public class GameManager {
             case 7 -> new BlueScreenOfDeath();
             case 8 -> new CicloInfinito();
             case 9 -> new SegmentationFault();
+            case 10 -> new Bebedeira();
             default -> null;
         };
     }
@@ -955,6 +961,7 @@ public class GameManager {
             case 3 -> new TratamentoDeExcepcoes();
             case 4 -> new IDE();
             case 5 -> new AjudaDoProfessor();
+            case 6 -> new Cerveja();
             default -> null;
         };
     }
@@ -1173,9 +1180,33 @@ public class GameManager {
             case 7 -> processarBlueScreen(jogador, abyss);                                // BlueScreenOfDeath
             case 8 -> processarCicloInfinito(jogador, abyss, slotAtual);                  // CicloInfinito
             case 9 -> processarSegmentationFault(abyss, slotAtual, posicaoJogador);       // SegmentationFault
+            case 10 -> processarBebedeira(jogador, abyss, slotAtual); 
             default -> avancarTurno("");
         };
     }
+
+    private String processarBebedeira(Jogador jogador, Abyss abyss, Slot slotAtual) {
+    // Verificar se o jogador tem a ferramenta Cerveja
+    ArrayList<String> ferramentasJogador = jogador.getFerramentas();
+    
+    if (ferramentasJogador != null && ferramentasJogador.contains("Cerveja")) {
+        // TEM Cerveja → abismo é ativado → move para posição aleatória
+        // Remove a cerveja (consome a ferramenta)
+        ferramentasJogador.remove("Cerveja");
+        
+        // Gerar posição aleatória (entre 1 e tamanho do tabuleiro)
+        int boardSize = tabuleiro.getWorldSize();
+        int posicaoAleatoria = (int) (Math.random() * boardSize) + 1;
+        
+        // Mover o jogador para posição aleatória
+        moverJogadorParaPosicao(jogador, slotAtual, posicaoAleatoria);
+        
+        return avancarTurno("Bebedeira ativada! " + jogador.getNome() + " teleportado para casa " + posicaoAleatoria);
+    } else {
+        // NÃO TEM Cerveja → abismo NÃO é ativado → nada acontece
+        return avancarTurno("Bebedeira não ativada - " + jogador.getNome() + " não tem cerveja");
+    }
+}
 
     private String processarBlueScreen(Jogador jogador, Abyss abyss) {
         jogador.setEstado(Estado.DERROTADO);

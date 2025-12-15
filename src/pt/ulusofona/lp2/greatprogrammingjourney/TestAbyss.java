@@ -776,4 +776,162 @@ public class TestAbyss {
         IDE tool = new IDE();
         assertTrue(tool.isTool());
     }
+
+    // ========================= BEBEDEIRA (Novo Abismo) ====================
+
+    @Test
+    public void testAbyss_Bebedeira_hasCorrectProperties() {
+        Bebedeira abyss = new Bebedeira();
+        assertEquals("Bebedeira", abyss.getNome());
+        assertEquals(10, abyss.getId());
+        assertNull(abyss.getFerramentaAnuladora()); // Bebedeira não tem ferramenta anuladora tradicional
+        assertFalse(abyss.isTool());
+        assertEquals("A:10", abyss.toString());
+    }
+
+    @Test
+    public void testTool_Cerveja_hasCorrectProperties() {
+        Cerveja tool = new Cerveja();
+        assertEquals("Cerveja", tool.getNome());
+        assertEquals(6, tool.getId());
+        assertTrue(tool.isTool());
+        assertEquals("T:6", tool.toString());
+    }
+
+    @Test
+    public void test_bebedeira_sem_cerveja_nada_acontece() {
+        // Cenário: jogador SEM cerveja cai na Bebedeira - nada acontece
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        String[][] events = {
+                {"0", "10", "5"} // tipo 0 = Abyss, subtipo 10 = Bebedeira, posição 5
+        };
+        createScenario(players, 10, events);
+        int player = 1;
+
+        assertEquals(1, getPosition(player));
+        assertEquals("A:10", getAbyssOnSlot(5));
+
+        // Jogador move para a casa 5 (Bebedeira)
+        assertEquals(player, gm.getCurrentPlayerID());
+        assertTrue(gm.moveCurrentPlayer(4)); // 1 -> 5
+        gm.reactToAbyssOrTool();
+
+        // Sem cerveja, o jogador FICA na posição 5 (abismo não é ativado)
+        assertEquals(5, getPosition(player));
+        assertEquals("Em Jogo", getState(player));
+    }
+
+    @Test
+    public void test_bebedeira_com_cerveja_teleporta_jogador() {
+        // Cenário: jogador COM cerveja cai na Bebedeira - teleporta para posição aleatória
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        String[][] events = {
+                {"1", "6", "3"},  // tipo 1 = Tool, subtipo 6 = Cerveja, posição 3
+                {"0", "10", "5"}  // tipo 0 = Abyss, subtipo 10 = Bebedeira, posição 5
+        };
+        createScenario(players, 15, events);
+        int player = 1;
+
+        assertEquals(1, getPosition(player));
+
+        // 1ª jogada: apanha Cerveja na casa 3
+        assertEquals(player, gm.getCurrentPlayerID());
+        assertTrue(gm.moveCurrentPlayer(2)); // 1 -> 3
+        gm.reactToAbyssOrTool();
+        assertEquals(3, getPosition(player));
+        assertTrue(getTools(player).contains("Cerveja"));
+
+        // Jogador 2 joga
+        assertTrue(gm.moveCurrentPlayer(1));
+        gm.reactToAbyssOrTool();
+
+        // 2ª jogada: cai na Bebedeira na casa 5, tem cerveja
+        assertEquals(player, gm.getCurrentPlayerID());
+        assertTrue(gm.moveCurrentPlayer(2)); // 3 -> 5
+        gm.reactToAbyssOrTool();
+
+        // Jogador foi teleportado para alguma posição (pode ser qualquer uma entre 1 e 15)
+        int novaPosicao = getPosition(player);
+        assertTrue(novaPosicao >= 1 && novaPosicao <= 15, 
+            "Jogador deveria estar entre posição 1 e 15, mas está em: " + novaPosicao);
+        
+        // Cerveja foi consumida
+        assertFalse(getTools(player).contains("Cerveja"));
+        
+        // Jogador continua em jogo
+        assertEquals("Em Jogo", getState(player));
+    }
+
+    @Test
+    public void test_bebedeira_cerveja_consumida_apos_uso() {
+        // Cenário: verifica que a cerveja é consumida após usar na Bebedeira
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        String[][] events = {
+                {"1", "6", "2"},  // tipo 1 = Tool, subtipo 6 = Cerveja, posição 2
+                {"0", "10", "4"}, // tipo 0 = Abyss, subtipo 10 = Bebedeira, posição 4
+                {"0", "10", "8"}  // Segunda Bebedeira na posição 8
+        };
+        createScenario(players, 15, events);
+        int player = 1;
+
+        // Apanha cerveja na posição 2
+        assertTrue(gm.moveCurrentPlayer(1)); // 1 -> 2
+        gm.reactToAbyssOrTool();
+        assertTrue(getTools(player).contains("Cerveja"));
+
+        // Jogador 2 joga
+        assertTrue(gm.moveCurrentPlayer(1));
+        gm.reactToAbyssOrTool();
+
+        // Jogador 1 cai na primeira Bebedeira na posição 4
+        assertTrue(gm.moveCurrentPlayer(2)); // 2 -> 4
+        gm.reactToAbyssOrTool();
+
+        // Cerveja foi consumida
+        assertFalse(getTools(player).contains("Cerveja"));
+
+        // Jogador continua em jogo
+        assertEquals("Em Jogo", getState(player));
+    }
+
+    @Test
+    public void test_bebedeira_jogador_teleportado_para_posicao_valida() {
+        // Cenário: verifica que o teleporte é sempre para uma posição válida
+        String[][] players = {
+                {"1", "Player1", "Java", "PURPLE"},
+                {"2", "Player2", "Python", "BLUE"}
+        };
+        String[][] events = {
+                {"1", "6", "2"},  // Cerveja na posição 2
+                {"0", "10", "4"}  // Bebedeira na posição 4
+        };
+        createScenario(players, 10, events);
+        int player = 1;
+
+        // Apanha cerveja
+        assertTrue(gm.moveCurrentPlayer(1)); // 1 -> 2
+        gm.reactToAbyssOrTool();
+
+        // Jogador 2 joga
+        assertTrue(gm.moveCurrentPlayer(1));
+        gm.reactToAbyssOrTool();
+
+        // Cai na Bebedeira
+        assertTrue(gm.moveCurrentPlayer(2)); // 2 -> 4
+        gm.reactToAbyssOrTool();
+
+        // Posição deve estar dentro do tabuleiro (1 a 10)
+        int pos = getPosition(player);
+        assertTrue(pos >= 1 && pos <= 10, 
+            "Posição teleportada deve estar entre 1 e 10, mas está em: " + pos);
+    }
 }
