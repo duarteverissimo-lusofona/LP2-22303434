@@ -7,3 +7,6 @@
 
 *Diagrama UML:*  
 ![Diagrama UML](src/pt/ulusofona/lp2/greatprogrammingjourney/uml.png)
+
+*Vídeo*
+https://youtu.be/SjeUCQufc6A
