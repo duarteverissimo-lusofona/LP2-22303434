@@ -7,8 +7,8 @@ import java.util.List;
 
 public class Slot {
 
-        int nrSlot;
-        List<Jogador> jogadores = new ArrayList<>();
+        private int nrSlot;
+        private List<Jogador> jogadores = new ArrayList<>();
         private Evento evento;
 
         public Slot(int nrSlot) {

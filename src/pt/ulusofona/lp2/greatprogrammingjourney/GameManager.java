@@ -364,7 +364,7 @@ public class GameManager {
 
         List<Jogador> jogadores = tabuleiro.getListaJogadores();
         // Validar se o tabuleiro existe
-        if (tabuleiro == null || tabuleiro.slots == null) {
+        if (tabuleiro == null) {
             return null;
         }
 
@@ -375,21 +375,21 @@ public class GameManager {
 
         // Procurar o jogador pelo ID
         for (Jogador jogador : jogadores) {
-            if (jogador.id == id) {
+            if (jogador.getId() == id) {
                 String[] info = new String[7];
 
                 // [0] ID do programador
-                info[0] = String.valueOf(jogador.id);
+                info[0] = String.valueOf(jogador.getId());
 
                 // [1] Nome
-                info[1] = jogador.nome;
+                info[1] = jogador.getNome();
 
                 // [2] Linguagens favoritas (separadas por ";")
                 StringBuilder linguagens = new StringBuilder();
-                if (jogador.linguagensProgramacao != null && !jogador.linguagensProgramacao.isEmpty()) {
-                    for (int i = 0; i < jogador.linguagensProgramacao.size(); i++) {
-                        linguagens.append(jogador.linguagensProgramacao.get(i));
-                        if (i < jogador.linguagensProgramacao.size() - 1) {
+                if (jogador.getLinguagens() != null && !jogador.getLinguagens().isEmpty()) {
+                    for (int i = 0; i < jogador.getLinguagens().size(); i++) {
+                        linguagens.append(jogador.getLinguagens().get(i));
+                        if (i < jogador.getLinguagens().size() - 1) {
                             linguagens.append(";");
                         }
                     }
@@ -397,21 +397,12 @@ public class GameManager {
                 info[2] = linguagens.toString();
 
                 // [3] Cor em MAIÚSCULAS
-                info[3] = jogador.cor.name().charAt(0) + jogador.cor.name().substring(1).toLowerCase();
+                info[3] = jogador.getCor().name().charAt(0) + jogador.getCor().name().substring(1).toLowerCase();
 
                 // [4] Posição actual no tabuleiro
                 int posicao = 1; // posição padrão
 
-                for (Slot slot : tabuleiro.slots) {
-                    if (slot.jogadores != null) {
-                        for (Jogador j : slot.jogadores) {
-                            if (j.id == id) {
-                                posicao = slot.nrSlot;
-                                break;
-                            }
-                        }
-                    }
-                }
+                posicao = tabuleiro.getPosOf(jogador);
                 info[4] = String.valueOf(posicao);
 
                 // [5] Ferramentas (separadas por ";") ou "No tools"
@@ -423,9 +414,9 @@ public class GameManager {
                 }
 
                 // [6] Estado (Em Jogo, Derrotado, Preso)
-                if (jogador.estado == Estado.EM_JOGO) {
+                if (jogador.getEstado() == Estado.EM_JOGO) {
                     info[6] = "Em Jogo";
-                } else if (jogador.estado == Estado.DERROTADO) {
+                } else if (jogador.getEstado() == Estado.DERROTADO) {
                     info[6] = "Derrotado";
                 } else {
                     info[6] = "Preso";
@@ -442,7 +433,7 @@ public class GameManager {
     public String getProgrammerInfoAsStr(int id){
         List<Jogador> jogadores = tabuleiro.getListaJogadores();
         // Validar se o tabuleiro existe
-        if (tabuleiro == null || tabuleiro.slots == null) {
+        if (tabuleiro == null) {
             return null;
         }
 
@@ -453,28 +444,18 @@ public class GameManager {
 
         // Procurar o jogador pelo ID
         for (Jogador jogador : jogadores) {
-            if (jogador.id == id) {
+            if (jogador.getId() == id) {
 
                 // Obter a posição do jogador
-                int posicao = 1;
-                for (Slot slot : tabuleiro.slots) {
-                    if (slot.jogadores != null) {
-                        for (Jogador j : slot.jogadores) {
-                            if (j.id == id) {
-                                posicao = slot.nrSlot;
-                                break;
-                            }
-                        }
-                    }
-                }
+                int posicao = tabuleiro.getPosOf(jogador);
 
                 StringBuilder linguagens = new StringBuilder();
 
-                if (jogador.linguagensProgramacao != null && !jogador.linguagensProgramacao.isEmpty()) {
+                if (jogador.getLinguagens() != null && !jogador.getLinguagens().isEmpty()) {
                     // Criar array de strings com os nomes das linguagens
-                    ArrayList<String> nomesLinguagens = new ArrayList<>(jogador.linguagensProgramacao.size());
-                    for (int i = 0; i < jogador.linguagensProgramacao.size(); i++) {
-                        nomesLinguagens.add(jogador.linguagensProgramacao.get(i));
+                    ArrayList<String> nomesLinguagens = new ArrayList<>(jogador.getLinguagens().size());
+                    for (int i = 0; i < jogador.getLinguagens().size(); i++) {
+                        nomesLinguagens.add(jogador.getLinguagens().get(i));
                     }
 
                     // Ordenar alfabeticamente
@@ -500,9 +481,9 @@ public class GameManager {
 
                 // Obter o estado
                 String estado;
-                if (jogador.estado == Estado.EM_JOGO) {
+                if (jogador.getEstado() == Estado.EM_JOGO) {
                     estado = "Em Jogo";
-                } else if (jogador.estado == Estado.DERROTADO) {
+                } else if (jogador.getEstado() == Estado.DERROTADO) {
                     estado = "Derrotado";
                 } else {
                     estado = "Preso";
@@ -510,7 +491,7 @@ public class GameManager {
 
 
                 // Formato: <ID> | <Nome> | <Pos> | <Ferramentas> | <Linguagens favoritas> | <Estado>
-                return jogador.id + " | " + jogador.nome + " | " + posicao + " | " +
+                return jogador.getId() + " | " + jogador.getNome() + " | " + posicao + " | " +
                         ferramentasStr + " | " + linguagens.toString() + " | " + estado;
             }
         }
@@ -521,7 +502,7 @@ public class GameManager {
 
     public String[] getSlotInfo(int position) {
         // Validar tabuleiro
-        if (tabuleiro == null || tabuleiro.slots == null) {
+        if (tabuleiro == null) {
             return null;
         }
 
@@ -538,7 +519,7 @@ public class GameManager {
         }
 
         // [0] IDs dos jogadores
-        String ids = (slot.jogadores == null || slot.jogadores.isEmpty()) ? "" : slot.getIDJogadores();
+        String ids = (slot.getJogadores() == null || slot.getJogadores().isEmpty()) ? "" : slot.getIDJogadores();
 
         // [1] Nome do evento (descrição)
         Evento evento = slot.getEvento();
@@ -772,7 +753,7 @@ public class GameManager {
     public boolean gameIsOver(){
 
         // Sem tabuleiro, não há jogo para terminar
-        if (tabuleiro == null || tabuleiro.slots == null) {
+        if (tabuleiro == null) {
             return false;
         }
 
